@@ -214,7 +214,7 @@ var AddFriendPage = React.createClass({
                     },
                     success: function() {
                         this.setState({friendId: ""});
-                        this.props.history.pushState(null, "/");
+                        this.props.history.pushState(null, joinUrl(baseUrl, "/"));
                     }.bind(this),
                     error: function(xhr, status, err) {
                         console.log("Error occurred while adding friend: " + err);
@@ -390,7 +390,7 @@ var SignUpPage = React.createClass({
                 data: user
             }).then(function () {
                 localStorage.userId = userId;
-                this.props.history.pushState(null, "/");
+                this.props.history.pushState(null, joinUrl(baseUrl, "/"));
             }.bind(this), function() {
                 this.setState("User " + userId + " already exists.");
             }.bind(this));
@@ -567,8 +567,8 @@ ReactDOM.render(
         <Route path={joinUrl(baseUrl, "/signup")} component={SignUpPage}/>
         <Route path={joinUrl(baseUrl, "/")} component={App}>
             <IndexRoute component={ActivityStream}/>
-            <Route path={joinUrl(baseUrl, "/users/:userId")} component={UserChirps}/>
-            <Route path={joinUrl(baseUrl, "/addFriend")} component={AddFriendPage}/>
+            <Route path="users/:userId" component={UserChirps}/>
+            <Route path="addFriend" component={AddFriendPage}/>
         </Route>
     </ReactRouter.Router>,
     contentArea
