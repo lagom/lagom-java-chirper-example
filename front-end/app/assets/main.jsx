@@ -4,6 +4,8 @@
 var Route = ReactRouter.Route;
 var IndexRoute = ReactRouter.IndexRoute;
 var Link = ReactRouter.Link;
+var contentArea = document.getElementById("content");
+var baseUrl = contentArea.getAttribute("data-application-context");
 
 /**
  * Send a JSON message to the server.
@@ -34,12 +36,20 @@ function getUser(userId) {
     );
 }
 
+function joinUrl() {
+    var result = "";
+    for (var i = 0; i < arguments.length; i++) {
+        result = result + '/' + arguments[i];
+    }
+    return result.replace(/\/\/+/g, '/');
+}
+
 var Chirp = React.createClass({
     render: function() {
         return (
             <div className="chirp">
                 <h3 className="chirpUser">
-                    <Link to={"/users/" + this.props.userId}>
+                    <Link to={joinUrl(baseUrl, "/users/", this.props.userId)}>
                         {this.props.userName}
                     </Link>
                 </h3>
@@ -204,7 +214,7 @@ var AddFriendPage = React.createClass({
                     },
                     success: function() {
                         this.setState({friendId: ""});
-                        this.props.history.pushState(null, "/");
+                        this.props.history.pushState(null, joinUrl(baseUrl, "/"));
                     }.bind(this),
                     error: function(xhr, status, err) {
                         console.log("Error occurred while adding friend: " + err);
@@ -380,7 +390,7 @@ var SignUpPage = React.createClass({
                 data: user
             }).then(function () {
                 localStorage.userId = userId;
-                this.props.history.pushState(null, "/");
+                this.props.history.pushState(null, joinUrl(baseUrl, "/"));
             }.bind(this), function() {
                 this.setState("User " + userId + " already exists.");
             }.bind(this));
@@ -449,16 +459,16 @@ var PageLayout = React.createClass({
         if (this.props.user) {
             links = (
                 <div className="tertiary-nav">
-                    <Link to="/addFriend">Add Friend</Link>,
-                    <Link to="/">Feed</Link>,
-                    <Link to={"/users/" + this.props.user.userId }>{this.props.user.name}</Link>
+                    <Link to={joinUrl(baseUrl, "/addFriend")}>Add Friend</Link>,
+                    <Link to={joinUrl(baseUrl, "/")}>Feed</Link>,
+                    <Link to={joinUrl(baseUrl, "/users/", this.props.user.userId)}>{this.props.user.name}</Link>
                 </div>
             );
             button = <a className="btn" href="#" onClick={this.props.logout}>Logout</a>;
         } else if (this.props.showSignup) {
-            button = <Link className="btn" to="/signup">Sign up</Link>;
+            button = <Link className="btn" to={joinUrl(baseUrl, "/signup")}>Sign up</Link>;
         } else {
-            button = <Link className="btn" to="/">Login</Link>;
+            button = <Link className="btn" to={joinUrl(baseUrl, "/")}>Login</Link>;
         }
 
         return (
@@ -466,7 +476,7 @@ var PageLayout = React.createClass({
                  <div id="site-header">
                      <div className="row">
                          <div className="small-3 columns">
-                             <Link to="/" id="logo">Chirper</Link>
+                             <Link to={joinUrl(baseUrl, "/")} id="logo">Chirper</Link>
                          </div>
                          <div className="small-9 columns">
                              <nav>
@@ -554,14 +564,14 @@ var App = React.createClass({
 
 ReactDOM.render(
     <ReactRouter.Router history={History.createHistory()}>
-        <Route path="/signup" component={SignUpPage}/>
-        <Route path="/" component={App}>
+        <Route path={joinUrl(baseUrl, "/signup")} component={SignUpPage}/>
+        <Route path={joinUrl(baseUrl, "/")} component={App}>
             <IndexRoute component={ActivityStream}/>
-            <Route path="/users/:userId" component={UserChirps}/>
-            <Route path="/addFriend" component={AddFriendPage}/>
+            <Route path="users/:userId" component={UserChirps}/>
+            <Route path="addFriend" component={AddFriendPage}/>
         </Route>
     </ReactRouter.Router>,
-    document.getElementById("content")
+    contentArea
 );
 
 

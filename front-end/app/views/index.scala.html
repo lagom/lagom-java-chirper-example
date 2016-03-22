@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="@routes.Assets.versioned("main.css")"/>
     </head>
     <body>
-        <div id="content"></div>
+        <div id="content" data-application-context="@{sys.props.get("application.context").getOrElse("")}"></div>
         <script type="text/javascript" src="@routes.Assets.versioned("lib/react/react.js")"></script>
         <script type="text/javascript" src="@routes.Assets.versioned("lib/react/react-dom.js")"></script>
         <script type="text/javascript" src="@routes.Assets.versioned("lib/react-router/ReactRouter.js")"></script>
