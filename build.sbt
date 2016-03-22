@@ -20,6 +20,19 @@ lazy val friendImpl = project("friend-impl")
       lagomJavadslTestKit
     )
   )
+  .settings(
+    // ConductR settings
+    BundleKeys.bundleConfVersion := BundleConfVersions.V_1_2_0,
+    BundleKeys.endpoints := Map(
+      "akka-remote" -> Endpoint("tcp"),
+      "friendservice" -> Endpoint("http", 0, "friendservice",
+        RequestAcl(
+          Http(
+            "^/api/users".r
+          ))
+      )
+    )
+  )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(friendApi)
 
@@ -42,6 +55,19 @@ lazy val chirpImpl = project("chirp-impl")
       lagomJavadslTestKit
     )
   )
+  .settings(
+    // ConductR settings
+    BundleKeys.bundleConfVersion := BundleConfVersions.V_1_2_0,
+    BundleKeys.endpoints := Map(
+      "akka-remote" -> Endpoint("tcp"),
+      "chirpservice" -> Endpoint("http", 0, "chirpservice",
+        RequestAcl(
+          Http(
+            "^/api/chirps".r
+          ))
+      )
+    )
+  )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(chirpApi)
 
@@ -57,6 +83,19 @@ lazy val activityStreamImpl = project("activity-stream-impl")
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies += lagomJavadslTestKit
+  )
+  .settings(
+    // ConductR settings
+    BundleKeys.bundleConfVersion := BundleConfVersions.V_1_2_0,
+    BundleKeys.endpoints := Map(
+      "akka-remote" -> Endpoint("tcp"),
+      "activityservice" -> Endpoint("http", 0, "activityservice",
+        RequestAcl(
+          Http(
+            "^/api/activity".r
+          ))
+      )
+    )
   )
   .dependsOn(activityStreamApi, chirpApi, friendApi)
 
@@ -76,11 +115,24 @@ lazy val frontEnd = project("front-end")
     resolvers += Resolver.bintrayRepo("typesafe", "maven-releases"),
     ReactJsKeys.sourceMapInline := true,
     // ConductR settings
+    BundleKeys.bundleConfVersion := BundleConfVersions.V_1_2_0,
     BundleKeys.nrOfCpus := 1.0,
     BundleKeys.memory := 64.MiB,
     BundleKeys.diskSpace := 35.MB,
-    BundleKeys.endpoints := Map("web" -> Endpoint("http", services = Set(URI("http://:9000")))),
-    javaOptions in Bundle ++= Seq("-Dhttp.address=$WEB_BIND_IP", "-Dhttp.port=$WEB_BIND_PORT")
+//    BundleKeys.endpoints := Map("web" -> Endpoint("http", services = Set(URI("http://:9000")))),
+    BundleKeys.endpoints := Map(
+      "chirperweb" -> Endpoint("http", 0, "chirperweb",
+        RequestAcl(
+          Http(
+            "^/chirper".r
+          ))
+      )
+    ),
+    javaOptions in Bundle ++= Seq(
+      "-Dapplication.context=/chirper/",
+      "-Dhttp.address=$CHIRPERWEB_BIND_IP",
+      "-Dhttp.port=$CHIRPERWEB_BIND_PORT"
+    )
   )
 
 lazy val loadTestApi = project("load-test-api")
