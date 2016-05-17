@@ -24,8 +24,8 @@ public interface ChirpService extends Service {
     // @formatter:off
     return named("chirpservice").with(
         pathCall("/api/chirps/live/:userId", this::addChirp),
-        pathCall("/api/chirps/live", this::getLiveChirps),
-        pathCall("/api/chirps/history", this::getHistoricalChirps)
+        namedCall("/api/chirps/live", this::getLiveChirps),
+        namedCall("/api/chirps/history", this::getHistoricalChirps)
       ).withAutoAcl(true);
     // @formatter:on
   }

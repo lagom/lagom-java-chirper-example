@@ -4,7 +4,8 @@
 package sample.chirper.friend.api;
 
 import static com.lightbend.lagom.javadsl.api.Service.named;
-import static com.lightbend.lagom.javadsl.api.Service.restCall;
+import static com.lightbend.lagom.javadsl.api.Service.namedCall;
+import static com.lightbend.lagom.javadsl.api.Service.pathCall;
 
 import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.Descriptor;
@@ -52,10 +53,10 @@ public interface FriendService extends Service {
   default Descriptor descriptor() {
     // @formatter:off
     return named("friendservice").with(
-        restCall(Method.GET,  "/api/users/:userId", this::getUser),
-        restCall(Method.POST, "/api/users", this::createUser),
-        restCall(Method.POST, "/api/users/:userId/friends", this::addFriend),
-        restCall(Method.GET,  "/api/users/:userId/followers", this::getFollowers)
+        pathCall("/api/users/:userId", this::getUser),
+        namedCall("/api/users", this::createUser),
+        pathCall("/api/users/:userId/friends", this::addFriend),
+        pathCall("/api/users/:userId/followers", this::getFollowers)
       ).withAutoAcl(true);
     // @formatter:on
   }
