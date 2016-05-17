@@ -64,8 +64,8 @@ public class ChirpServiceImpl implements ChirpService {
   }
 
   @Override
-  public ServiceCall<String, Chirp, NotUsed> addChirp() {
-    return (userId, chirp) -> {
+  public ServiceCall<Chirp, NotUsed> addChirp(String userId) {
+    return chirp -> {
       if (!userId.equals(chirp.userId))
         throw new IllegalArgumentException("UserId " + userId + " did not match userId in " + chirp);
       PubSubRef<Chirp> topic = topics.refFor(TopicId.of(Chirp.class, topicQualifier(userId)));
@@ -83,8 +83,8 @@ public class ChirpServiceImpl implements ChirpService {
   }
 
   @Override
-  public ServiceCall<NotUsed, LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
-    return (id, req) -> {
+  public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
+    return req -> {
       return recentChirps(req.userIds).thenApply(recentChirps -> {
         List<Source<Chirp, ?>> sources = new ArrayList<>();
         for (String userId : req.userIds) {
@@ -103,8 +103,8 @@ public class ChirpServiceImpl implements ChirpService {
   }
 
   @Override
-  public ServiceCall<NotUsed, HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
-    return (id, req) -> {
+  public ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
+    return req -> {
       List<Source<Chirp, ?>> sources = new ArrayList<>();
       for (String userId : req.userIds) {
           Source<Chirp, NotUsed> select = db

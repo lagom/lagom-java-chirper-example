@@ -23,14 +23,14 @@ public interface FriendService extends Service {
    *
    * The ID of this service call is the user name, and the response message is the User object.
    */
-  ServiceCall<String, NotUsed, User> getUser();
+  ServiceCall<NotUsed, User> getUser(String userId);
 
   /**
    * Service call for creating a user.
    *
    * The request message is the User to create.
    */
-  ServiceCall<NotUsed, User, NotUsed> createUser();
+  ServiceCall<User, NotUsed> createUser();
 
   /**
    * Service call for adding a friend to a user.
@@ -38,7 +38,7 @@ public interface FriendService extends Service {
    * The ID for this service call is the ID of the user that the friend is being added to.
    * The request message is the ID of the friend being added.
    */
-  ServiceCall<String, FriendId, NotUsed> addFriend();
+  ServiceCall<FriendId, NotUsed> addFriend(String userId);
 
   /**
    * Service call for getting the followers of a user.
@@ -46,16 +46,16 @@ public interface FriendService extends Service {
    * The ID for this service call is the Id of the user to get the followers for.
    * The response message is the list of follower IDs.
    */
-  ServiceCall<String, NotUsed, PSequence<String>> getFollowers();
+  ServiceCall<NotUsed, PSequence<String>> getFollowers(String userId);
 
   @Override
   default Descriptor descriptor() {
     // @formatter:off
     return named("friendservice").with(
-        restCall(Method.GET,  "/api/users/:id", getUser()),
-        restCall(Method.POST, "/api/users", createUser()),
-        restCall(Method.POST, "/api/users/:userId/friends", addFriend()),
-        restCall(Method.GET,  "/api/users/:id/followers", getFollowers())
+        restCall(Method.GET,  "/api/users/:userId", this::getUser),
+        restCall(Method.POST, "/api/users", this::createUser),
+        restCall(Method.POST, "/api/users/:userId/friends", this::addFriend),
+        restCall(Method.GET,  "/api/users/:userId/followers", this::getFollowers)
       ).withAutoAcl(true);
     // @formatter:on
   }

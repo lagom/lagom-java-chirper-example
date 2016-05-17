@@ -13,19 +13,19 @@ import static com.lightbend.lagom.javadsl.api.Service.*;
 
 public interface ChirpService extends Service {
 
-  ServiceCall<String, Chirp, NotUsed> addChirp();
+  ServiceCall<Chirp, NotUsed> addChirp(String userId);
   
-  ServiceCall<NotUsed, LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps();
+  ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps();
   
-  ServiceCall<NotUsed, HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps();
+  ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps();
 
   @Override
   default Descriptor descriptor() {
     // @formatter:off
     return named("chirpservice").with(
-        pathCall("/api/chirps/live/:userId", addChirp()),
-        pathCall("/api/chirps/live", getLiveChirps()),
-        pathCall("/api/chirps/history", getHistoricalChirps())
+        pathCall("/api/chirps/live/:userId", this::addChirp),
+        pathCall("/api/chirps/live", this::getLiveChirps),
+        pathCall("/api/chirps/history", this::getHistoricalChirps)
       ).withAutoAcl(true);
     // @formatter:on
   }

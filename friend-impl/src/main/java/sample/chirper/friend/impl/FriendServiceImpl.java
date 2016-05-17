@@ -43,36 +43,36 @@ public class FriendServiceImpl implements FriendService {
   }
 
   @Override
-  public ServiceCall<String, NotUsed, User> getUser() {
-    return (id, request) -> {
-      return friendEntityRef(id).ask(new GetUser()).thenApply(reply -> {
+  public ServiceCall<NotUsed, User> getUser(String userId) {
+    return request -> {
+      return friendEntityRef(userId).ask(new GetUser()).thenApply(reply -> {
         if (reply.user.isPresent())
           return reply.user.get();
         else
-          throw new NotFound("user " + id + " not found");
+          throw new NotFound("user " + userId + " not found");
       });
     };
   }
 
   @Override
-  public ServiceCall<NotUsed, User, NotUsed> createUser() {
-    return (id, request) -> {
+  public ServiceCall<User, NotUsed> createUser() {
+    return request -> {
       return friendEntityRef(request.userId).ask(new CreateUser(request))
           .thenApply(ack -> NotUsed.getInstance());
     };
   }
 
   @Override
-  public ServiceCall<String, FriendId, NotUsed> addFriend() {
-    return (id, request) -> {
-      return friendEntityRef(id).ask(new AddFriend(request.friendId))
+  public ServiceCall<FriendId, NotUsed> addFriend(String userId) {
+    return request -> {
+      return friendEntityRef(userId).ask(new AddFriend(request.friendId))
           .thenApply(ack -> NotUsed.getInstance());
     };
   }
 
   @Override
-  public ServiceCall<String, NotUsed, PSequence<String>> getFollowers() {
-    return (userId, req) -> {
+  public ServiceCall<NotUsed, PSequence<String>> getFollowers(String userId) {
+    return req -> {
       CompletionStage<PSequence<String>> result = db.selectAll("SELECT * FROM follower WHERE userId = ?", userId)
         .thenApply(rows -> {
         List<String> followers = rows.stream().map(row -> row.getString("followedBy")).collect(Collectors.toList());

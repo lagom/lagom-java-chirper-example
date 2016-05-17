@@ -20,21 +20,21 @@ public interface LoadTestService extends Service {
   /**
    * Example: src/test/resources/websocket-loadtest.html
    */
-  ServiceCall<NotUsed, NotUsed, Source<String, ?>> startLoad();
+  ServiceCall<NotUsed, Source<String, ?>> startLoad();
 
   /**
    * Example: curl http://localhost:21360/loadHeadless -H
    * "Content-Type: application/json" -X POST -d '{"users":2000, "friends":5,
    * "chirps":200000, "clients":20, "parallelism":20}'
    */
-  ServiceCall<NotUsed, TestParams, NotUsed> startLoadHeadless();
+  ServiceCall<TestParams, NotUsed> startLoadHeadless();
 
   @Override
   default Descriptor descriptor() {
     // @formatter:off
     return named("/loadtestservice").with(
-        pathCall("/load", startLoad()),
-        restCall(Method.POST, "/loadHeadless", startLoadHeadless())
+        pathCall("/load", this::startLoad),
+        restCall(Method.POST, "/loadHeadless", this::startLoadHeadless)
       );
     // @formatter:on
   }

@@ -55,15 +55,15 @@ public class LoadTestServiceImpl implements LoadTestService {
   }
 
   @Override
-  public ServiceCall<NotUsed, NotUsed, Source<String, ?>> startLoad() {
-    return (id, req) -> {
+  public ServiceCall<NotUsed, Source<String, ?>> startLoad() {
+    return req -> {
       return CompletableFuture.completedFuture(load(new TestParams()));
     };
   }
 
   @Override
-  public ServiceCall<NotUsed, TestParams, NotUsed> startLoadHeadless() {
-    return (id, params) -> {
+  public ServiceCall<TestParams, NotUsed> startLoadHeadless() {
+    return params -> {
       load(params).runWith(Sink.ignore(), materializer);
       return CompletableFuture.completedFuture(NotUsed.getInstance());
     };
@@ -91,8 +91,8 @@ public class LoadTestServiceImpl implements LoadTestService {
 
     final AtomicLong chirpCount = new AtomicLong();
     Source<String, ?> addedFriends = friendPairs.mapAsyncUnordered(params.parallelism, pair -> {
-      CompletionStage<NotUsed> invoked = friendService.addFriend().invoke(
-          userIdPrefix + pair.first(), new FriendId(userIdPrefix + pair.second()));
+      CompletionStage<NotUsed> invoked = friendService.addFriend(userIdPrefix + pair.first()).
+        invoke(new FriendId(userIdPrefix + pair.second()));
       // start clients when last friend association has been created
       if (params.users == pair.first() && (params.users + params.friends) == pair.second())
         invoked.thenAccept(a -> startClients(params.clients, userIdPrefix, chirpCount, runSeqNr));
@@ -107,7 +107,7 @@ public class LoadTestServiceImpl implements LoadTestService {
     });
 
     Source<String, ?> postedChirps = chirps.mapAsyncUnordered(params.parallelism, chirp -> {
-      return chirpService.addChirp().invoke(chirp.userId, chirp);
+      return chirpService.addChirp(chirp.userId).invoke(chirp);
     }).via(summary("posted chirp"));
 
 
@@ -156,7 +156,7 @@ public class LoadTestServiceImpl implements LoadTestService {
   private void startClients(int numberOfClients, String userIdPrefix, AtomicLong chirpCount, long runSeqNr) {
     log.info("starting " + numberOfClients + " clients for users prefixed with " + userIdPrefix);
     for (int n = 1; n <= numberOfClients; n++) {
-      activityService.getLiveActivityStream().invoke(userIdPrefix + n, NotUsed.getInstance()).thenAccept(src -> {
+      activityService.getLiveActivityStream(userIdPrefix + n).invoke().thenAccept(src -> {
         src
           .map( chirp -> {
             if (runSeq.get() != runSeqNr) {

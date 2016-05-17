@@ -35,7 +35,7 @@ public class ActivityStreamServiceTest {
   public void shouldGetLiveFeed() throws Exception {
     withServer(setup, server -> {
       ActivityStreamService feedService = server.client(ActivityStreamService.class);
-      Source<Chirp, ?> chirps = feedService.getLiveActivityStream().invoke("usr1", NotUsed.getInstance())
+      Source<Chirp, ?> chirps = feedService.getLiveActivityStream("usr1").invoke()
           .toCompletableFuture().get(3, SECONDS);
       Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
       probe.request(10);
@@ -49,7 +49,7 @@ public class ActivityStreamServiceTest {
   public void shouldGetHistoricalFeed() throws Exception {
     withServer(setup, server -> {
       ActivityStreamService feedService = server.client(ActivityStreamService.class);
-      Source<Chirp, ?> chirps = feedService.getHistoricalActivityStream().invoke("usr1", NotUsed.getInstance())
+      Source<Chirp, ?> chirps = feedService.getHistoricalActivityStream("usr1").invoke()
           .toCompletableFuture().get(3, SECONDS);
       Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
       probe.request(10);
@@ -67,36 +67,36 @@ public class ActivityStreamServiceTest {
     private final User usr2 = new User("usr2", "User 2");
 
     @Override
-    public ServiceCall<String, NotUsed, User> getUser() {
-      return (id, req) -> {
-        if (id.equals(usr1.userId))
+    public ServiceCall<NotUsed, User> getUser(String userId) {
+      return req -> {
+        if (userId.equals(usr1.userId))
           return completedFuture(usr1);
-        else if (id.equals(usr2.userId))
+        else if (userId.equals(usr2.userId))
           return completedFuture(usr2);
         else
-          throw new NotFound(id);
+          throw new NotFound(userId);
       };
     }
 
     @Override
-    public ServiceCall<NotUsed, User, NotUsed> createUser() {
-      return (id, req) -> completedFuture(NotUsed.getInstance());
+    public ServiceCall<User, NotUsed> createUser() {
+      return req -> completedFuture(NotUsed.getInstance());
     }
 
     @Override
-    public ServiceCall<String, FriendId, NotUsed> addFriend() {
-      return (id, req) -> completedFuture(NotUsed.getInstance());
+    public ServiceCall<FriendId, NotUsed> addFriend(String userId) {
+      return req -> completedFuture(NotUsed.getInstance());
     }
 
     @Override
-    public ServiceCall<String, NotUsed, PSequence<String>> getFollowers() {
-      return (id, req) -> {
-        if (id.equals(usr1.userId))
+    public ServiceCall<NotUsed, PSequence<String>> getFollowers(String userId) {
+      return req -> {
+        if (userId.equals(usr1.userId))
           return completedFuture(TreePVector.<String>empty());
-        else if (id.equals(usr2.userId))
+        else if (userId.equals(usr2.userId))
           return completedFuture(TreePVector.<String>empty().plus("usr1"));
         else
-          throw new NotFound(id);
+          throw new NotFound(userId);
       };
     }
   }
@@ -104,13 +104,13 @@ public class ActivityStreamServiceTest {
   static class ChirpServiceStub implements ChirpService {
 
     @Override
-    public ServiceCall<String, Chirp, NotUsed> addChirp() {
-      return (id, req) -> completedFuture(NotUsed.getInstance());
+    public ServiceCall<Chirp, NotUsed> addChirp(String userId) {
+      return req -> completedFuture(NotUsed.getInstance());
     }
 
     @Override
-    public ServiceCall<NotUsed, LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
-      return (id, req) -> {
+    public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
+      return req -> {
         if (req.userIds.contains("usr2")) {
           Chirp c1 = new Chirp("usr2", "msg1");
           Chirp c2 = new Chirp("usr2", "msg2");
@@ -121,8 +121,8 @@ public class ActivityStreamServiceTest {
     }
 
     @Override
-    public ServiceCall<NotUsed, HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
-      return (id, req) -> {
+    public ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
+      return req -> {
         if (req.userIds.contains("usr2")) {
           Chirp c1 = new Chirp("usr2", "msg1");
           return completedFuture(Source.single(c1));

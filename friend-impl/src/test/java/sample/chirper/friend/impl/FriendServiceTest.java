@@ -30,17 +30,17 @@ public class FriendServiceTest {
       User usr3 = new User("usr3", "User 3");
       friendService.createUser().invoke(usr3).toCompletableFuture().get(3, SECONDS);
 
-      friendService.addFriend().invoke("usr1", new FriendId(usr2.userId)).toCompletableFuture().get(3, SECONDS);
-      friendService.addFriend().invoke("usr1", new FriendId(usr3.userId)).toCompletableFuture().get(3, SECONDS);
+      friendService.addFriend("usr1").invoke(new FriendId(usr2.userId)).toCompletableFuture().get(3, SECONDS);
+      friendService.addFriend("usr1").invoke(new FriendId(usr3.userId)).toCompletableFuture().get(3, SECONDS);
 
-      User fetchedUsr1 = friendService.getUser().invoke("usr1", NotUsed.getInstance()).toCompletableFuture().get(3,
+      User fetchedUsr1 = friendService.getUser("usr1").invoke().toCompletableFuture().get(3,
           SECONDS);
       assertEquals(usr1.userId, fetchedUsr1.userId);
       assertEquals(usr1.name, fetchedUsr1.name);
       assertEquals(TreePVector.empty().plus("usr2").plus("usr3"), fetchedUsr1.friends);
 
       eventually(FiniteDuration.create(10, SECONDS), () -> {
-        PSequence<String> followers = friendService.getFollowers().invoke("usr2", NotUsed.getInstance())
+        PSequence<String> followers = friendService.getFollowers("usr2").invoke()
             .toCompletableFuture().get(3, SECONDS);
         assertEquals(TreePVector.empty().plus("usr1"), followers);
       });

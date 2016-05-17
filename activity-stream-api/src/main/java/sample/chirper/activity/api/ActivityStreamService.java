@@ -15,16 +15,16 @@ import static com.lightbend.lagom.javadsl.api.Service.*;
 
 public interface ActivityStreamService extends Service {
 
-  ServiceCall<String, NotUsed, Source<Chirp, ?>> getLiveActivityStream();
+  ServiceCall<NotUsed, Source<Chirp, ?>> getLiveActivityStream(String userId);
 
-  ServiceCall<String, NotUsed, Source<Chirp, ?>> getHistoricalActivityStream();
+  ServiceCall<NotUsed, Source<Chirp, ?>> getHistoricalActivityStream(String userId);
 
   @Override
   default Descriptor descriptor() {
     // @formatter:off
     return named("activityservice").with(
-        pathCall("/api/activity/:userId/live", getLiveActivityStream()),
-        pathCall("/api/activity/:userId/history", getHistoricalActivityStream())
+        pathCall("/api/activity/:userId/live", this::getLiveActivityStream),
+        pathCall("/api/activity/:userId/history", this::getHistoricalActivityStream)
       ).withAutoAcl(true);
     // @formatter:on
   }
