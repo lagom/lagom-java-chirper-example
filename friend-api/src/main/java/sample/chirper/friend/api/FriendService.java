@@ -52,7 +52,7 @@ public interface FriendService extends Service {
   @Override
   default Descriptor descriptor() {
     // @formatter:off
-    return named("friendservice").with(
+    return named("friendservice").withCalls(
         pathCall("/api/users/:userId", this::getUser),
         namedCall("/api/users", this::createUser),
         pathCall("/api/users/:userId/friends", this::addFriend),

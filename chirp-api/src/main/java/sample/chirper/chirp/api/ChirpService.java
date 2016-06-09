@@ -22,7 +22,7 @@ public interface ChirpService extends Service {
   @Override
   default Descriptor descriptor() {
     // @formatter:off
-    return named("chirpservice").with(
+    return named("chirpservice").withCalls(
         pathCall("/api/chirps/live/:userId", this::addChirp),
         namedCall("/api/chirps/live", this::getLiveChirps),
         namedCall("/api/chirps/history", this::getHistoricalChirps)

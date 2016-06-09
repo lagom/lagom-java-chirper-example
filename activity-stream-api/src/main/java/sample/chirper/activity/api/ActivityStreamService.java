@@ -22,7 +22,7 @@ public interface ActivityStreamService extends Service {
   @Override
   default Descriptor descriptor() {
     // @formatter:off
-    return named("activityservice").with(
+    return named("activityservice").withCalls(
         pathCall("/api/activity/:userId/live", this::getLiveActivityStream),
         pathCall("/api/activity/:userId/history", this::getHistoricalActivityStream)
       ).withAutoAcl(true);

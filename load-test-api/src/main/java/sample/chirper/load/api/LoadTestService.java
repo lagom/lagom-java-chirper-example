@@ -31,7 +31,7 @@ public interface LoadTestService extends Service {
   @Override
   default Descriptor descriptor() {
     // @formatter:off
-    return named("/loadtestservice").with(
+    return named("/loadtestservice").withCalls(
         namedCall("/load", this::startLoad),
         namedCall("/loadHeadless", this::startLoadHeadless)
       );
