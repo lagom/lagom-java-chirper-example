@@ -14,7 +14,7 @@ lazy val friendImpl = project("friend-impl")
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslPersistence,
+      lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit
     )
   )
@@ -35,7 +35,7 @@ lazy val chirpImpl = project("chirp-impl")
   .settings(
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
-      lagomJavadslPersistence,
+      lagomJavadslPersistenceCassandra,
       lagomJavadslPubSub,
       lagomJavadslTestKit
     )

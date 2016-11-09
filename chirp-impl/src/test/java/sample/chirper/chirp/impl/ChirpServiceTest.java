@@ -27,7 +27,7 @@ public class ChirpServiceTest {
 
   @BeforeClass
   public static void setUp() {
-    server = startServer(defaultSetup());
+    server = startServer(defaultSetup().withCassandra(true));
   }
 
   @AfterClass

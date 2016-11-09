@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import com.lightbend.lagom.javadsl.persistence.ReadSide;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
@@ -16,7 +17,6 @@ import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.api.transport.NotFound;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
-import com.lightbend.lagom.javadsl.persistence.cassandra.CassandraReadSide;
 import com.lightbend.lagom.javadsl.persistence.cassandra.CassandraSession;
 
 import akka.NotUsed;
@@ -33,7 +33,7 @@ public class FriendServiceImpl implements FriendService {
   private final CassandraSession db;
 
   @Inject
-  public FriendServiceImpl(PersistentEntityRegistry persistentEntities, CassandraReadSide readSide,
+  public FriendServiceImpl(PersistentEntityRegistry persistentEntities, ReadSide readSide,
       CassandraSession db) {
     this.persistentEntities = persistentEntities;
     this.db = db;

@@ -21,7 +21,7 @@ public class FriendServiceTest {
 
   @Test
   public void shouldBeAbleToCreateUsersAndConnectFriends() throws Exception {
-    withServer(defaultSetup(), server -> {
+    withServer(defaultSetup().withCassandra(true), server -> {
       FriendService friendService = server.client(FriendService.class);
       User usr1 = new User("usr1", "User 1");
       friendService.createUser().invoke(usr1).toCompletableFuture().get(10, SECONDS);
