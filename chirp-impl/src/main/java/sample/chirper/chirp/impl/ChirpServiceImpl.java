@@ -6,12 +6,10 @@ package sample.chirper.chirp.impl;
 import akka.Done;
 import akka.NotUsed;
 import akka.stream.javadsl.Source;
-import com.datastax.driver.core.Row;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 import com.lightbend.lagom.javadsl.persistence.cassandra.CassandraSession;
 import org.pcollections.PSequence;
-import org.pcollections.TreePVector;
 import play.Logger;
 import play.Logger.ALogger;
 import sample.chirper.chirp.api.Chirp;
@@ -21,23 +19,24 @@ import sample.chirper.chirp.api.LiveChirpsRequest;
 import sample.chirper.chirp.impl.ChirpTimelineCommand.AddChirp;
 
 import javax.inject.Inject;
-import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.stream.Collectors;
 
 public class ChirpServiceImpl implements ChirpService {
-
     private final PersistentEntityRegistry persistentEntitites;
     private final ChirpTopic topic;
+    private final ChirpRepository chirps;
     private final CassandraSession db;
     private final ALogger log = Logger.of(getClass());
 
     @Inject
-    public ChirpServiceImpl(PersistentEntityRegistry persistentEntitites, ChirpTopic topic, CassandraSession db) {
+    public ChirpServiceImpl(PersistentEntityRegistry persistentEntitites, ChirpTopic topic, ChirpRepository chirps, CassandraSession db) {
         this.persistentEntitites = persistentEntitites;
         this.topic = topic;
+        this.chirps = chirps;
         this.db = db;
 
         persistentEntitites.register(ChirpTimelineEntity.class);
@@ -78,80 +77,28 @@ public class ChirpServiceImpl implements ChirpService {
 
     @Override
     public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
-        return req -> {
-            return recentChirps(req.userIds).thenApply(recentChirps -> {
-                List<Source<Chirp, ?>> sources = new ArrayList<>();
-                for (String userId : req.userIds) {
-                    sources.add(topic.subscriber(userId));
-                }
-                HashSet<String> users = new HashSet<>(req.userIds);
-                Source<Chirp, ?> publishedChirps = Source.from(sources).flatMapMerge(sources.size(), s -> s)
-                        .filter(c -> users.contains(c.userId));
+        return req -> chirps.getRecentChirps(req.userIds).thenApply(recentChirps -> {
+            List<Source<Chirp, ?>> sources = new ArrayList<>();
+            for (String userId : req.userIds) {
+                sources.add(topic.subscriber(userId));
+            }
+            HashSet<String> users = new HashSet<>(req.userIds);
+            Source<Chirp, ?> publishedChirps = Source.from(sources).flatMapMerge(sources.size(), s -> s)
+                    .filter(c -> users.contains(c.userId));
 
-                // We currently ignore the fact that it is possible to get duplicate chirps
-                // from the recent and the topic. That can be solved with a de-duplication stage.
-                return Source.from(recentChirps).concat(publishedChirps);
-            });
-        };
+            // We currently ignore the fact that it is possible to get duplicate chirps
+            // from the recent and the topic. That can be solved with a de-duplication stage.
+            return Source.from(recentChirps).concat(publishedChirps);
+        });
     }
 
     @Override
     public ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
         return req -> {
-            List<Source<Chirp, ?>> sources = new ArrayList<>();
-            for (String userId : req.userIds) {
-                Source<Chirp, NotUsed> select = db
-                        .select("SELECT * FROM chirp WHERE userId = ? AND timestamp >= ? ORDER BY timestamp ASC", userId,
-                                req.fromTime.toEpochMilli())
-                        .map(this::mapChirp);
-                sources.add(select);
-            }
-            // Chirps from one user are ordered by timestamp, but chirps from different
-            // users are not ordered. That can be improved by implementing a smarter
-            // merge that takes the timestamps into account.
-            Source<Chirp, ?> result = Source.from(sources).flatMapMerge(sources.size(), s -> s);
+            PSequence<String> userIds = req.userIds;
+            long timestamp = req.fromTime.toEpochMilli();
+            Source<Chirp, ?> result = chirps.getHistoricalChirps(userIds, timestamp);
             return CompletableFuture.completedFuture(result);
         };
     }
-
-    private Chirp mapChirp(Row row) {
-        return new Chirp(row.getString("userId"), row.getString("message"),
-                Optional.of(Instant.ofEpochMilli(row.getLong("timestamp"))), Optional.of(row.getString("uuid")));
-    }
-
-    private CompletionStage<PSequence<Chirp>> recentChirps(PSequence<String> userIds) {
-        int limit = 10;
-        PSequence<CompletionStage<PSequence<Chirp>>> results = TreePVector.empty();
-        for (String userId : userIds) {
-            CompletionStage<PSequence<Chirp>> result = db
-                    .selectAll("SELECT * FROM chirp WHERE userId = ? ORDER BY timestamp DESC LIMIT ?", userId, limit)
-                    .thenApply(rows -> {
-                        List<Chirp> chirps = rows.stream().map(this::mapChirp).collect(Collectors.toList());
-                        return TreePVector.from(chirps);
-                    });
-            results = results.plus(result);
-        }
-
-        CompletionStage<PSequence<Chirp>> combined = null;
-        for (CompletionStage<PSequence<Chirp>> chirpsFromOneUser : results) {
-            if (combined == null) {
-                combined = chirpsFromOneUser;
-            } else {
-                combined = combined.thenCombine(chirpsFromOneUser, (a, b) -> a.plusAll(b));
-            }
-        }
-
-        CompletionStage<PSequence<Chirp>> sortedLimited = combined.thenApply(all -> {
-            List<Chirp> allSorted = new ArrayList<>(all);
-            // reverse order
-            Collections.sort(allSorted, (a, b) -> b.timestamp.compareTo(a.timestamp));
-            List<Chirp> limited = allSorted.stream().limit(limit).collect(Collectors.toList());
-            List<Chirp> reversed = new ArrayList<>(limited);
-            Collections.reverse(reversed);
-            return TreePVector.from(reversed);
-        });
-
-        return sortedLimited;
-    }
-
 }
