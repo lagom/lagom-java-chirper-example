@@ -3,7 +3,6 @@
  */
 package sample.chirper.chirp.impl;
 
-import akka.Done;
 import akka.NotUsed;
 import akka.stream.javadsl.Source;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
@@ -23,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 public class ChirpServiceImpl implements ChirpService {
     private final PersistentEntityRegistry persistentEntitites;
@@ -40,22 +38,6 @@ public class ChirpServiceImpl implements ChirpService {
         this.db = db;
 
         persistentEntitites.register(ChirpTimelineEntity.class);
-
-        createTable();
-    }
-
-    private void createTable() {
-        // @formatter:off
-        CompletionStage<Done> result = db.executeCreateTable(
-                "CREATE TABLE IF NOT EXISTS chirp ("
-                        + "userId text, timestamp bigint, uuid text, message text, "
-                        + "PRIMARY KEY (userId, timestamp, uuid))");
-        // @formatter:on
-        result.whenComplete((ok, err) -> {
-            if (err != null) {
-                log.error("Failed to create chirp table, due to: " + err.getMessage(), err);
-            }
-        });
     }
 
     @Override
@@ -66,14 +48,10 @@ public class ChirpServiceImpl implements ChirpService {
 
             return persistentEntitites.refFor(ChirpTimelineEntity.class, userId)
                     .ask(new AddChirp(chirp))
-                    .thenCompose((ack) ->
-
-                            db.executeWrite("INSERT INTO chirp (userId, uuid, timestamp, message) VALUES (?, ?, ?, ?)",
-                                    chirp.userId, chirp.uuid, chirp.timestamp.toEpochMilli(),
-                                    chirp.message).thenApply(done -> NotUsed.getInstance())
-                    );
+                    .thenApply(done -> NotUsed.getInstance());
         };
     }
+
 
     @Override
     public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {

@@ -3,11 +3,10 @@
  */
 package sample.chirper.chirp.impl;
 
-import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
-import static java.util.concurrent.TimeUnit.SECONDS;
-
-import com.lightbend.lagom.javadsl.testkit.ServiceTest.TestServer;
-import java.time.Instant;
+import akka.stream.javadsl.Source;
+import akka.stream.testkit.TestSubscriber.Probe;
+import akka.stream.testkit.javadsl.TestSink;
+import com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -16,98 +15,105 @@ import sample.chirper.chirp.api.Chirp;
 import sample.chirper.chirp.api.ChirpService;
 import sample.chirper.chirp.api.HistoricalChirpsRequest;
 import sample.chirper.chirp.api.LiveChirpsRequest;
+import scala.concurrent.duration.FiniteDuration;
 
-import akka.stream.javadsl.Source;
-import akka.stream.testkit.TestSubscriber.Probe;
-import akka.stream.testkit.javadsl.TestSink;
+import java.time.Instant;
+
+import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class ChirpServiceTest {
 
-  private static TestServer server;
+    private static TestServer server;
 
-  @BeforeClass
-  public static void setUp() {
-    server = startServer(defaultSetup().withCassandra(true));
-  }
+    @BeforeClass
+    public static void setUp() {
+        server = startServer(defaultSetup().withCassandra(true));
+    }
 
-  @AfterClass
-  public static void tearDown() {
-    server.stop();
-    server = null;
-  }
+    @AfterClass
+    public static void tearDown() {
+        server.stop();
+        server = null;
+    }
 
-  @Test
-  public void shouldPublishShirpsToSubscribers() throws Exception {
-    ChirpService chirpService = server.client(ChirpService.class);
-    LiveChirpsRequest request = new LiveChirpsRequest(TreePVector.<String>empty().plus("usr1").plus("usr2"));
-    Source<Chirp, ?> chirps1 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
-    Probe<Chirp> probe1 = chirps1.runWith(TestSink.probe(server.system()), server.materializer());
-    probe1.request(10);
-    Source<Chirp, ?> chirps2 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
-    Probe<Chirp> probe2 = chirps2.runWith(TestSink.probe(server.system()), server.materializer());
-    probe2.request(10);
+    @Test
+    public void shouldPublishShirpsToSubscribers() throws Exception {
+        ChirpService chirpService = server.client(ChirpService.class);
+        LiveChirpsRequest request = new LiveChirpsRequest(TreePVector.<String>empty().plus("usr1").plus("usr2"));
+        Source<Chirp, ?> chirps1 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+        Probe<Chirp> probe1 = chirps1.runWith(TestSink.probe(server.system()), server.materializer());
+        probe1.request(10);
+        Source<Chirp, ?> chirps2 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+        Probe<Chirp> probe2 = chirps2.runWith(TestSink.probe(server.system()), server.materializer());
+        probe2.request(10);
 
-    Chirp chirp1 = new Chirp("usr1", "hello 1");
-    chirpService.addChirp("usr1").invoke(chirp1).toCompletableFuture().get(3, SECONDS);
-    probe1.expectNext(chirp1);
-    probe2.expectNext(chirp1);
+        Chirp chirp1 = new Chirp("usr1", "hello 1");
+        chirpService.addChirp("usr1").invoke(chirp1).toCompletableFuture().get(3, SECONDS);
+        probe1.expectNext(chirp1);
+        probe2.expectNext(chirp1);
 
-    Chirp chirp2 = new Chirp("usr1", "hello 2");
-    chirpService.addChirp("usr1").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
-    probe1.expectNext(chirp2);
-    probe2.expectNext(chirp2);
+        Chirp chirp2 = new Chirp("usr1", "hello 2");
+        chirpService.addChirp("usr1").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
+        probe1.expectNext(chirp2);
+        probe2.expectNext(chirp2);
 
-    Chirp chirp3 = new Chirp("usr2", "hello 3");
-    chirpService.addChirp("usr2").invoke(chirp3).toCompletableFuture().get(3, SECONDS);
-    probe1.expectNext(chirp3);
-    probe2.expectNext(chirp3);
+        Chirp chirp3 = new Chirp("usr2", "hello 3");
+        chirpService.addChirp("usr2").invoke(chirp3).toCompletableFuture().get(3, SECONDS);
+        probe1.expectNext(chirp3);
+        probe2.expectNext(chirp3);
 
-    probe1.cancel();
-    probe2.cancel();
-  }
+        probe1.cancel();
+        probe2.cancel();
+    }
 
-  @Test
-  public void shouldIncludeSomeOldChirpsInLiveFeed() throws Exception {
-    ChirpService chirpService = server.client(ChirpService.class);
+    @Test
+    public void shouldIncludeSomeOldChirpsInLiveFeed() throws Exception {
+        ChirpService chirpService = server.client(ChirpService.class);
 
-    Chirp chirp1 = new Chirp("usr3", "hi 1");
-    chirpService.addChirp("usr3").invoke(chirp1).toCompletableFuture().get(3, SECONDS);
+        Chirp chirp1 = new Chirp("usr3", "hi 1");
+        chirpService.addChirp("usr3").invoke(chirp1).toCompletableFuture().get(3, SECONDS);
 
-    Chirp chirp2 = new Chirp("usr4", "hi 2");
-    chirpService.addChirp("usr4").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
+        Chirp chirp2 = new Chirp("usr4", "hi 2");
+        chirpService.addChirp("usr4").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
 
-    LiveChirpsRequest request = new LiveChirpsRequest(TreePVector.<String>empty().plus("usr3").plus("usr4"));
-    Source<Chirp, ?> chirps = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
-    Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
-    probe.request(10);
-    probe.expectNextUnordered(chirp1, chirp2);
+        LiveChirpsRequest request = new LiveChirpsRequest(TreePVector.<String>empty().plus("usr3").plus("usr4"));
 
-    Chirp chirp3 = new Chirp("usr4", "hi 3");
-    chirpService.addChirp("usr4").invoke(chirp3).toCompletableFuture().get(3, SECONDS);
-    probe.expectNext(chirp3);
+        eventually(FiniteDuration.create(10, SECONDS), () -> {
+            Source<Chirp, ?> chirps = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+            Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
+            probe.request(10);
+            probe.expectNextUnordered(chirp1, chirp2);
 
-    probe.cancel();
-  }
+            Chirp chirp3 = new Chirp("usr4", "hi 3");
+            chirpService.addChirp("usr4").invoke(chirp3).toCompletableFuture().get(3, SECONDS);
+            probe.expectNext(chirp3);
 
-  @Test
-  public void shouldRetrieveOldChirps() throws Exception {
-    ChirpService chirpService = server.client(ChirpService.class);
+            probe.cancel();
+        });
+    }
 
-    Chirp chirp1 = new Chirp("usr5", "msg 1");
-    chirpService.addChirp("usr5").invoke(chirp1).toCompletableFuture().get(3, SECONDS);
+    @Test
+    public void shouldRetrieveOldChirps() throws Exception {
+        ChirpService chirpService = server.client(ChirpService.class);
 
-    Chirp chirp2 = new Chirp("usr6", "msg 2");
-    chirpService.addChirp("usr6").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
+        Chirp chirp1 = new Chirp("usr5", "msg 1");
+        chirpService.addChirp("usr5").invoke(chirp1).toCompletableFuture().get(3, SECONDS);
 
-    HistoricalChirpsRequest request = new HistoricalChirpsRequest(Instant.now().minusSeconds(20),
-        TreePVector.<String>empty().plus("usr5").plus("usr6"));
-    Source<Chirp, ?> chirps = chirpService.getHistoricalChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
-    Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
-    probe.request(10);
-    probe.expectNextUnordered(chirp1, chirp2);
-    probe.expectComplete();
-  }
+        Chirp chirp2 = new Chirp("usr6", "msg 2");
+        chirpService.addChirp("usr6").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
 
+        HistoricalChirpsRequest request = new HistoricalChirpsRequest(Instant.now().minusSeconds(20),
+                TreePVector.<String>empty().plus("usr5").plus("usr6"));
+
+        eventually(FiniteDuration.create(10, SECONDS), () -> {
+            Source<Chirp, ?> chirps = chirpService.getHistoricalChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+            Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
+            probe.request(10);
+            probe.expectNextUnordered(chirp1, chirp2);
+            probe.expectComplete();
+        });
+    }
 
 
 }

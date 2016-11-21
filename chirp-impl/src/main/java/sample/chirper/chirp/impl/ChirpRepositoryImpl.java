@@ -1,8 +1,15 @@
 package sample.chirper.chirp.impl;
 
+import akka.Done;
 import akka.NotUsed;
 import akka.stream.javadsl.Source;
+import com.datastax.driver.core.BoundStatement;
+import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Row;
+import com.lightbend.lagom.javadsl.persistence.AggregateEventTag;
+import com.lightbend.lagom.javadsl.persistence.ReadSide;
+import com.lightbend.lagom.javadsl.persistence.ReadSideProcessor;
+import com.lightbend.lagom.javadsl.persistence.cassandra.CassandraReadSide;
 import com.lightbend.lagom.javadsl.persistence.cassandra.CassandraSession;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
@@ -18,6 +25,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import static com.lightbend.lagom.javadsl.persistence.cassandra.CassandraReadSide.completedStatement;
 import static java.util.Comparator.comparing;
 
 class ChirpRepositoryImpl implements ChirpRepository {
@@ -33,8 +41,9 @@ class ChirpRepositoryImpl implements ChirpRepository {
     private final CassandraSession db;
 
     @Inject
-    ChirpRepositoryImpl(CassandraSession db) {
+    ChirpRepositoryImpl(CassandraSession db, ReadSide readSide) {
         this.db = db;
+        readSide.register(ChirpTimelineEventReadSideProcessor.class);
     }
 
     public Source<Chirp, ?> getHistoricalChirps(PSequence<String> userIds, long timestamp) {
@@ -90,5 +99,60 @@ class ChirpRepositoryImpl implements ChirpRepository {
                 Instant.ofEpochMilli(row.getLong("timestamp")),
                 row.getString("uuid")
         );
+    }
+
+
+    private static class ChirpTimelineEventReadSideProcessor extends ReadSideProcessor<ChirpTimelineEvent> {
+        private final CassandraSession db;
+        private final CassandraReadSide readSide;
+
+        private PreparedStatement insertChirp;
+
+        @Inject
+        private ChirpTimelineEventReadSideProcessor(CassandraSession db, CassandraReadSide readSide) {
+            this.db = db;
+            this.readSide = readSide;
+        }
+
+        @Override
+        public ReadSideHandler<ChirpTimelineEvent> buildHandler() {
+            return readSide.<ChirpTimelineEvent>builder("ChirpTimelineEventReadSideProcessor")
+                    .setGlobalPrepare(this::createTable)
+                    .setPrepare(tag -> prepareInsertChirp())
+                    .setEventHandler(ChirpTimelineEvent.ChirpAdded.class,
+                            event -> insertChirp(event.chirp))
+                    .build();
+        }
+
+        @Override
+        public PSequence<AggregateEventTag<ChirpTimelineEvent>> aggregateTags() {
+            return ChirpTimelineEvent.TAG.allTags();
+        }
+
+        private CompletionStage<Done> createTable() {
+            return db.executeCreateTable(
+                    "CREATE TABLE IF NOT EXISTS chirp ("
+                            + "userId text, timestamp bigint, uuid text, message text, "
+                            + "PRIMARY KEY (userId, timestamp, uuid))");
+        }
+
+        private CompletionStage<Done> prepareInsertChirp() {
+            return db.prepare("INSERT INTO chirp (userId, uuid, timestamp, message) VALUES (?, ?, ?, ?)")
+                    .thenApply(s -> {
+                        insertChirp = s;
+                        return Done.getInstance();
+                    });
+        }
+
+        private CompletionStage<List<BoundStatement>> insertChirp(Chirp chirp) {
+            return completedStatement(
+                    insertChirp.bind(
+                            chirp.userId,
+                            chirp.uuid,
+                            chirp.timestamp.toEpochMilli(),
+                            chirp.message
+                    )
+            );
+        }
     }
 }
