@@ -94,17 +94,26 @@ lazy val jacksonParameterNamesJavacSettings = Seq(
   javacOptions in compile += "-parameters"
 )
 
-// configuration of sbteclipse
+// Configures sbteclipse to enable Java support only, and disable Scala to remove clutter from the Project View.
+// To use this project as a starting point for a mixed Java/Scala Lagom project, see the
+// comments marked "SCALA SUPPORT" below.
 lazy val eclipseSettings = Seq(
+
+  // SCALA SUPPORT 1: Comment the (Java flavor) and uncomment the (ScalaIDE flavor)
   EclipseKeys.projectFlavor := EclipseProjectFlavor.Java,
+  //  EclipseKeys.projectFlavor := EclipseProjectFlavor.ScalaIDE,
+
+  // SCALA SUPPORT 2: Comment the following two lines.
+  unmanagedSourceDirectories in Compile := Seq((javaSource in Compile).value),
+  unmanagedSourceDirectories in Test := Seq((javaSource in Test).value),
+
+
   EclipseKeys.withBundledScalaContainers := false,
   EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource,
   EclipseKeys.eclipseOutput := Some(".target"),
   EclipseKeys.withSource := true,
-  EclipseKeys.withJavadoc := true,
-  // avoid some scala specific source directories
-  unmanagedSourceDirectories in Compile := Seq((javaSource in Compile).value),
-  unmanagedSourceDirectories in Test := Seq((javaSource in Test).value)
+  EclipseKeys.withJavadoc := true
+
 )
 
 // do not delete database files on start
