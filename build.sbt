@@ -70,7 +70,8 @@ lazy val frontEnd = project("front-end")
       "org.webjars" % "react" % "0.14.8",
       "org.webjars" % "react-router" % "1.0.3",
       "org.webjars" % "jquery" % "2.2.4",
-      "org.webjars" % "foundation" % "5.5.2"
+      "org.webjars" % "foundation" % "5.5.2",
+      lagomJavadslClient
     ),
     ReactJsKeys.sourceMapInline := true,
     // Remove to use Scala IDE
