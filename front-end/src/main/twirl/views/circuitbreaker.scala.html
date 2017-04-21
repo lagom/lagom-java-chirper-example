@@ -1,0 +1,20 @@
+@(webJarAssets: WebJarAssets)
+
+<html>
+    <head>
+        <title>Chirper</title>
+        <link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="/webjars/@{webJarAssets.locate("normalize.css")}"/>
+        <link rel="stylesheet" href="/webjars/@{webJarAssets.locate("foundation.min.css")}"/>
+        <link rel="stylesheet" href="/assets/main.css"/>
+    </head>
+    <body>
+        <div id="content"></div>
+        <script type="text/javascript" src="/webjars/@{webJarAssets.locate("react.js")}"></script>
+        <script type="text/javascript" src="/webjars/@{webJarAssets.locate("react-dom.js")}"></script>
+        <script type="text/javascript" src="/webjars/@{webJarAssets.locate("ReactRouter.js")}"></script>
+        <script type="text/javascript" src="https://unpkg.com/history@@1.17.0/umd/History.min.js"></script>
+        <script type="text/javascript" src="/webjars/@{webJarAssets.locate("jquery.js")}"></script>
+        <script type="text/javascript" src="/assets/circuitbreaker.js"></script>
+    </body>
+</html>
