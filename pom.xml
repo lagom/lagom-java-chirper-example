@@ -19,7 +19,6 @@
         <module>load-test-api</module>
         <module>load-test-impl</module>
         <module>front-end</module>
-        <module>cassandra-config</module>
     </modules>
 
     <build>
