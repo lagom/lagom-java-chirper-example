@@ -4,6 +4,12 @@ jdk:
   - oraclejdk8
 script:
   - mvn test -B
+cache:
+  directories:
+    - $HOME/.m2
+before_cache:
+  # Ensure changes to the cache aren't persisted
+  - rm -rf $HOME/.m2/repository/com/lightbend/lagom/sample/chirper
 notifications:
   webhooks:
     urls:
