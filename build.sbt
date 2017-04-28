@@ -1,4 +1,4 @@
-organization in ThisBuild := "sample.chirper"
+organization in ThisBuild := "com.lightbend.lagom.sample.chirper"
 
 // the Scala version that will be used for cross-compiled libraries
 scalaVersion in ThisBuild := "2.11.8"
