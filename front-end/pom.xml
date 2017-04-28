@@ -191,7 +191,7 @@
                         <arguments>
                             <argument>--extension</argument>
                             <argument>jsx</argument>
-                            <argument>${basedir}/src/main/resources/public</argument>
+                            <argument>${basedir}/src/main/resources/assets</argument>
                             <argument>${basedir}/target/classes/public</argument>
                         </arguments>
                         <!-- Need to pipe the output of the exec plugin into file, else the hot reload functionality won't work -->

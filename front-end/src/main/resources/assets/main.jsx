@@ -563,5 +563,3 @@ ReactDOM.render(
     </ReactRouter.Router>,
     document.getElementById("content")
 );
-
-
