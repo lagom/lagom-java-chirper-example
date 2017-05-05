@@ -184,7 +184,7 @@
                         <goal>exec</goal>
                     </goals>
                     <configuration>
-                        <executable>${basedir}/target/node/bin/jsx</executable>
+                        <executable>${basedir}/target/node/lib/node_modules/react-tools/bin/jsx</executable>
                         <environmentVariables>
                             <PATH>${env.PATH}:${pom.basedir}/target/node/node</PATH>
                         </environmentVariables>
