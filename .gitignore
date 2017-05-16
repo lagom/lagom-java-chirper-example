@@ -1,6 +1,9 @@
 *.class
 *.log
 
+# npm
+node_modules/
+
 # sbt specific
 .cache
 .history
@@ -18,6 +21,7 @@ project/plugins/project/
 .classpath
 .project
 .settings
+bin/
 
 # IDEA specific
 .idea

@@ -3,3 +3,4 @@
 
 A Lagom Java template for Lightbend Activator showcasing a twitter-like application
 
+Start all services using `mvn lagom:runAll`.

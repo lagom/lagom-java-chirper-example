@@ -147,7 +147,6 @@
                 <version>1.4</version>
                 <configuration>
                     <installDirectory>${pom.basedir}/target/node</installDirectory>
-                    <workingDirectory>${pom.basedir}/target/node</workingDirectory>
                 </configuration>
                 <executions>
                     <execution>
@@ -161,13 +160,13 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>install .jsx compiler</id>
+                        <id>npm install</id>
                         <phase>initialize</phase>
                         <goals>
                             <goal>npm</goal>
                         </goals>
                         <configuration>
-                            <arguments>install -g react-tools</arguments>
+                            <arguments>install</arguments>
                         </configuration>
                     </execution>
                 </executions>
@@ -184,14 +183,14 @@
                         <goal>exec</goal>
                     </goals>
                     <configuration>
-                        <executable>${basedir}/target/node/bin/jsx</executable>
+                        <executable>node</executable>
                         <environmentVariables>
                             <PATH>${env.PATH}:${pom.basedir}/target/node/node</PATH>
                         </environmentVariables>
                         <arguments>
-                            <argument>--extension</argument>
-                            <argument>jsx</argument>
+                            <argument>${basedir}/node_modules/babel-cli/bin/babel.js</argument>
                             <argument>${basedir}/src/main/resources/assets</argument>
+                            <argument>--out-dir</argument>
                             <argument>${basedir}/target/classes/public</argument>
                         </arguments>
                         <!-- Need to pipe the output of the exec plugin into file, else the hot reload functionality won't work -->

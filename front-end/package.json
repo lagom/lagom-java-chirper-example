@@ -1,0 +1,14 @@
+{
+  "name": "lagom-java-chirper",
+  "description": "Lagom Java Chirper",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lagom/activator-lagom-java-chirper.git"
+  },
+  "license": "Apache 2",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-react-jsx": "^6.24.1"
+  }
+}
