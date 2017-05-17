@@ -209,7 +209,7 @@
                         <image>
                             <build>
                                 <entryPoint>
-                                    java -cp '/maven/*' -Dplay.crypto.secret="${APPLICATION_SECRET:-none}" -Dhttp.address="$FRONT_END_BIND_IP" -Dhttp.port="$FRONT_END_BIND_PORT" play.core.server.ProdServerStart
+                                    java -cp '/maven/*' -Dplay.crypto.secret="${APPLICATION_SECRET:-none}" -Dhttp.address="$WEB_BIND_IP" -Dhttp.port="$WEB_BIND_PORT" play.core.server.ProdServerStart
                                 </entryPoint>
                             </build>
                         </image>

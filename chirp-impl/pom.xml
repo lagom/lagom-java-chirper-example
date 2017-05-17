@@ -92,7 +92,7 @@
                         <image>
                             <build>
                                 <entryPoint>
-                                    java -cp '/maven/*' -Dplay.crypto.secret="${APPLICATION_SECRET:-none}" -Dhttp.address="$CHIRP_BIND_IP" -Dhttp.port="$CHIRP_BIND_PORT" play.core.server.ProdServerStart
+                                    java -cp '/maven/*' -Dplay.crypto.secret="${APPLICATION_SECRET:-none}" -Dhttp.address="$CHIRPSERVICE_BIND_IP" -Dhttp.port="$CHIRPSERVICE_BIND_PORT" play.core.server.ProdServerStart
                                 </entryPoint>
                             </build>
                         </image>

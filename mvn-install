@@ -6,40 +6,37 @@ which mvn &>/dev/null || (echo '* maven not found; did you install it?' && exit 
 which docker &>/dev/null || (echo '* docker not found; did you install it?' && exit 2)
 which sandbox &>/dev/null || (echo '* sandbox not found; did you install the ConductR Developer Sandbox?' && exit 2)
 
-echo "* building project"
+echo "Building project"
 
 mvn clean package docker:build
 
-echo "* starting sandbox"
+echo "Starting sandbox"
 
-sandbox run 2.1.0-alpha.1
+sandbox run 2.1.0-alpha.4
 
-echo "* loading cassandra..."
-CASSANDRA_ID=$(conduct load cassandra --long-ids -q)
+echo "Deploying cassandra..."
+CASSANDRA_BUNDLE_ID=$(conduct load cassandra --long-ids -q)
+conduct run ${CASSANDRA_BUNDLE_ID} --no-wait -q
 
-echo "* loading activity-stream"
-ACTIVITY_STREAM_ID="$(docker save chirper/activity-stream-impl | bndl --no-default-check --endpoint activity-stream --endpoint akka-remote | conduct load --long-ids -q)"
+echo "Deploying friend-impl..."
+FRIEND_IMPL_BUNDLE_ID="$(docker save chirper/friend-impl | bndl --no-default-check --endpoint friendservice --bind-protocol http --bind-port 0 --service-name friendservice --acl http:/api/users --endpoint akka-remote | conduct load --long-ids -q)"
+conduct run "$FRIEND_IMPL_BUNDLE_ID" --no-wait -q
 
-echo "* loading chirp"
-CHIRP_ID="$(docker save chirper/chirp-impl | bndl --no-default-check --endpoint chirp --endpoint akka-remote | conduct load --long-ids -q)"
+echo "Deploying load-test-impl"
+LOAD_TEST_IMPL_BUNDLE_ID="$(docker save chirper/load-test-impl | bndl --no-default-check --endpoint loadtestservice --bind-protocol http --bind-port 0 --service-name loadtestservice --endpoint akka-remote | conduct load --long-ids -q)"
+conduct run "$LOAD_TEST_IMPL_BUNDLE_ID" --no-wait -q
 
-echo "* loading friend"
-FRIEND_ID="$(docker save chirper/friend-impl | bndl --no-default-check --endpoint friend --endpoint akka-remote | conduct load --long-ids -q)"
+echo "Deploying chirp-impl..."
+CHIRP_IMPL_BUNDLE_ID="$(docker save chirper/chirp-impl | bndl --no-default-check --endpoint chirpservice --bind-protocol http --bind-port 0 --service-name chirpservice --acl http:/api/chirps/live --acl http:/api/chirps/history --endpoint akka-remote | conduct load --long-ids -q)"
+conduct run "$CHIRP_IMPL_BUNDLE_ID" --no-wait -q
 
-echo "* loading front-end"
-FRONT_END_ID="$(docker save chirper/front-end | bndl --no-default-check --endpoint front-end --endpoint akka-remote | conduct load --long-ids -q)"
+echo "Deploying activity-stream-impl..."
+ACTIVITY_STREAM_ID="$(docker save chirper/activity-stream-impl | bndl --no-default-check --endpoint activityservice --bind-protocol http --bind-port 0 --service-name activityservice --acl http:/api/activity --endpoint akka-remote | conduct load --long-ids -q)"
+conduct run "$ACTIVITY_STREAM_ID" --no-wait -q
 
-echo "* running cassandra"
-conduct run ${CASSANDRA_ID} --no-wait -q
+echo "Deploying front-end..."
+FRONT_END_BUNDLE_ID="$(docker save chirper/front-end | bndl --no-default-check --endpoint web --bind-protocol http --bind-port 0 --service-name web --acl http:/ --endpoint akka-remote | conduct load --long-ids -q)"
+conduct run "$FRONT_END_BUNDLE_ID" --no-wait -q
 
-echo "* running activity-stream"
-conduct run "$ACTIVITY_STREAM_ID"
-
-echo "* running chirp"
-conduct run "$CHIRP_ID"
-
-echo "* running friend"
-conduct run "$FRIEND_ID"
-
-echo "* running front-end"
-conduct run "$FRONT_END_ID"
+echo 'Your system is deployed. Running "conduct info" to observe the cluster.'
+conduct info

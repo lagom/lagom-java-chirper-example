@@ -88,7 +88,7 @@
                         <image>
                             <build>
                                 <entryPoint>
-                                    java -cp '/maven/*' -Dplay.crypto.secret="${APPLICATION_SECRET:-none}" -Dhttp.address="$FRIEND_BIND_IP" -Dhttp.port="$FRIEND_BIND_PORT" play.core.server.ProdServerStart
+                                    java -cp '/maven/*' -Dplay.crypto.secret="${APPLICATION_SECRET:-none}" -Dhttp.address="$FRIENDSERVICE_BIND_IP" -Dhttp.port="$FRIENDSERVICE_BIND_PORT" play.core.server.ProdServerStart
                                 </entryPoint>
                             </build>
                         </image>
