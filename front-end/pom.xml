@@ -169,34 +169,20 @@
                             <arguments>install</arguments>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                  <execution>
-                    <id>compile .jsx files</id>
-                    <phase>generate-sources</phase>
-                    <goals>
-                        <goal>exec</goal>
-                    </goals>
-                    <configuration>
-                        <executable>node</executable>
-                        <environmentVariables>
-                            <PATH>${env.PATH}:${pom.basedir}/target/node/node</PATH>
-                        </environmentVariables>
-                        <arguments>
-                            <argument>${basedir}/node_modules/babel-cli/bin/babel.js</argument>
-                            <argument>${basedir}/src/main/resources/assets</argument>
-                            <argument>--out-dir</argument>
-                            <argument>${basedir}/target/classes/public</argument>
-                        </arguments>
-                        <!-- Need to pipe the output of the exec plugin into file, else the hot reload functionality won't work -->
-                        <outputFile>${java.io.tmpdir}/jsx-compile.txt</outputFile>
-                    </configuration>
-                  </execution>
+                    <execution>
+                        <id>compile .jsx files</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                run-script babel --
+                                ${basedir}/src/main/resources/assets
+                                --out-dir ${basedir}/target/classes/public
+                            </arguments>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
