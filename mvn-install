@@ -6,13 +6,19 @@ which mvn &>/dev/null || (echo '* maven not found; did you install it?' && exit 
 which docker &>/dev/null || (echo '* docker not found; did you install it?' && exit 2)
 which sandbox &>/dev/null || (echo '* sandbox not found; did you install the ConductR Developer Sandbox?' && exit 2)
 
+echo "Ensuring sandbox is running"
+SANDBOX_PIDS=$(sandbox ps -q)
+if [ -z "$SANDBOX_PIDS" ]; then
+  echo "Please first start the sandbox using 'sandbox run'."
+  exit 1
+fi
+
 echo "Building project"
 
 mvn clean package docker:build
 
-echo "Starting sandbox"
-
-sandbox run 2.1.0-alpha.4
+echo "Restarting ConductR to ensure a clean state..."
+sandbox restart
 
 echo "Deploying cassandra..."
 CASSANDRA_BUNDLE_ID=$(conduct load cassandra --long-ids -q)
