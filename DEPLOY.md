@@ -334,7 +334,7 @@ Firstly, we'll build a newer version of the `Friend` service. There's no change 
 
 Maven:
 ```bash
-(cd friend-impl && mvn clean package docker:build) && \
+mvn clean package docker:build && \
 docker save chirper/friend-impl | bndl --no-default-check --endpoint friend --endpoint akka-remote | conduct load
 ```
 
