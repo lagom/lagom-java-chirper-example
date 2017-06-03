@@ -147,6 +147,9 @@
                 <version>1.4</version>
                 <configuration>
                     <installDirectory>${pom.basedir}/target/node</installDirectory>
+                    <environmentVariables>
+                        <BUILD_SYSTEM>maven</BUILD_SYSTEM>
+                    </environmentVariables>
                 </configuration>
                 <executions>
                     <execution>
@@ -170,18 +173,10 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>compile .jsx files</id>
-                        <phase>generate-sources</phase>
+                        <id>webpack build</id>
                         <goals>
-                            <goal>npm</goal>
+                            <goal>webpack</goal>
                         </goals>
-                        <configuration>
-                            <arguments>
-                                run-script babel --
-                                ${basedir}/src/main/resources/assets
-                                --out-dir ${basedir}/target/classes/public
-                            </arguments>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

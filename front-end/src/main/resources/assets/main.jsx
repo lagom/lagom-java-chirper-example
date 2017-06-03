@@ -1,9 +1,10 @@
 /*
  * Copyright (C) 2016 Lightbend Inc. <http://www.lightbend.com>
  */
-var Route = ReactRouter.Route;
-var IndexRoute = ReactRouter.IndexRoute;
-var Link = ReactRouter.Link;
+import { createHistory } from 'history'
+import React from 'react';
+import { render } from 'react-dom';
+import { IndexRoute, Link, Route, Router } from 'react-router'
 
 /**
  * Send a JSON message to the server.
@@ -552,14 +553,14 @@ var App = React.createClass({
     }
 });
 
-ReactDOM.render(
-    <ReactRouter.Router history={History.createHistory()}>
+render(
+    <Router history={createHistory()}>
         <Route path="/signup" component={SignUpPage}/>
         <Route path="/" component={App}>
             <IndexRoute component={ActivityStream}/>
             <Route path="/users/:userId" component={UserChirps}/>
             <Route path="/addFriend" component={AddFriendPage}/>
         </Route>
-    </ReactRouter.Router>,
+    </Router>,
     document.getElementById("content")
 );

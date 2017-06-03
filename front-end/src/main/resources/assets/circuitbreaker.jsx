@@ -1,6 +1,7 @@
-var Route = ReactRouter.Route;
-var IndexRoute = ReactRouter.IndexRoute;
-var Link = ReactRouter.Link;
+import { createHistory } from 'history'
+import React from 'react';
+import { render } from 'react-dom';
+import { IndexRoute, Link, Route, Router } from 'react-router'
 
 function createCircuitBreakerStream(serviceHostPort, onopen) {
     return {
@@ -202,12 +203,9 @@ var ContentLayout = React.createClass({
    }
 });
 
-ReactDOM.render(
-    <ReactRouter.Router history={History.createHistory()}>
+render(
+    <Router history={createHistory()}>
         <Route path="/cb" component={CircuitBreakers} />
-    </ReactRouter.Router>,
+    </Router>,
     document.getElementById("content")
 );
-
-
-

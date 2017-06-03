@@ -68,16 +68,13 @@ lazy val frontEnd = project("front-end")
     version := "1.0-SNAPSHOT",
     routesGenerator := InjectedRoutesGenerator,
     libraryDependencies ++= Seq(
-      "org.webjars" % "react" % "0.14.8",
-      "org.webjars" % "react-router" % "1.0.3",
-      "org.webjars" % "jquery" % "2.2.4",
       "org.webjars" % "foundation" % "5.5.2",
       "org.webjars" %% "webjars-play" % "2.5.0",
       lagomJavadslClient
     ),
-    ReactJsKeys.sourceMapInline := true,
-    // Remove to use Scala IDE
-    EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources),
+
+    includeFilter in webpack := "*.js" || "*.jsx",
+    compile in Compile <<= (compile in Compile).dependsOn(webpack.toTask("")),
 
     sourceDirectory in Assets := baseDirectory.value / "src" / "main" / "resources" / "assets",
     resourceDirectory in Assets := baseDirectory.value / "src" / "main" / "resources" / "public",
@@ -85,7 +82,10 @@ lazy val frontEnd = project("front-end")
     PlayKeys.playMonitoredFiles ++=
       (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value :+
       (sourceDirectory in Assets).value :+
-      (resourceDirectory in Assets).value
+      (resourceDirectory in Assets).value,
+
+    // Remove to use Scala IDE
+    EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)
   )
 
 lazy val loadTestApi = project("load-test-api")
