@@ -74,7 +74,7 @@ lazy val frontEnd = project("front-end")
     ),
 
     includeFilter in webpack := "*.js" || "*.jsx",
-    compile in Compile <<= (compile in Compile).dependsOn(webpack.toTask("")),
+    compile in Compile := (compile in Compile).dependsOn(webpack.toTask("")).value,
 
     sourceDirectory in Assets := baseDirectory.value / "src" / "main" / "resources" / "assets",
     resourceDirectory in Assets := baseDirectory.value / "src" / "main" / "resources" / "public",
