@@ -1,0 +1,231 @@
+#!/usr/bin/env bash
+
+RESOURCES_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")/../resources" && pwd)"
+REGISTRY=""
+CONFIGURE_TLS=0
+DEPLOY_CASSANDRA=0
+BUILD_CHIRPER=0
+UPLOAD_CHIRPER=0
+DEPLOY_CHIRPER=0
+DELETE_CHIRPER=0
+DEPLOY_NGINX=0
+MINIKUBE=0
+MINIKUBE_RESET=0
+OPTION=""
+
+(which kubectl &>/dev/null) || (echo '* missing kubectl, is it installed?' && exit 1)
+(which bx &>/dev/null) || (echo '* missing bx, is it installed?' && exit 1)
+(which jq &>/dev/null) || (echo '* missing jq, is it installed?' && exit 1)
+(which docker &>/dev/null) || (echo '* missing docker; is it installed?' && exit 1)
+(which mvn &>/dev/null) || (echo '* missing mvn; is it installed?' && exit 1)
+
+if [[ "$#" -eq 0 ]]; then
+    echo "$0 [--minikube] [--new-minikube] [--registry REGISTRY] [--tls] [--cassandra] [--build] [--deploy] [--delete] [--nginx] [--all]" >&1
+    exit 1
+fi
+
+while test $# -gt 0; do
+    case "$1" in
+        --minikube)
+            (which minikube &>/dev/null) || (echo '* missing minikube; is it installed?' && exit 1)
+            MINIKUBE=1
+            REGISTRY=""
+            ;;
+        --new-minikube)
+            (which minikube &>/dev/null) || (echo '* missing minikube; is it installed?' && exit 1)
+            MINIKUBE=1
+            MINIKUBE_RESET=1
+            REGISTRY=""
+            ;;
+        --registry)
+            MINIKUBE=0
+            MINIKUBE_RESET=0
+            OPTION=REGISTRY
+            UPLOAD_CHIRPER=1
+            ;;
+        --tls)
+            CONFIGURE_TLS=1
+            ;;
+        --cassandra)
+            DEPLOY_CASSANDRA=1
+            ;;
+        --build)
+            BUILD_CHIRPER=1
+            ;;
+        --deploy)
+            DEPLOY_CHIRPER=1
+            ;;
+        --delete)
+            DELETE_CHIRPER=1
+            ;;
+        --nginx)
+            DEPLOY_NGINX=1
+            ;;
+        --all)
+            CONFIGURE_TLS=1
+            DEPLOY_CASSANDRA=1
+            BUILD_CHIRPER=1
+            DEPLOY_CHIRPER=1
+            DEPLOY_NGINX=1
+            ;;
+        --*)
+            >&2 echo "unknown option $1"
+            exit 1
+            ;;
+        *)
+            if [ "$OPTION" != "" ]; then
+                declare "$OPTION=$1"
+                OPTION=""
+            else
+                >&2 echo "unknown argument $1"
+                exit 1
+            fi
+            ;;
+    esac
+    shift
+done
+
+echo '****************************'
+echo '***  Summary             ***'
+echo '****************************'
+
+echo "Registry:          $([ "$REGISTRY" = "" ]        && echo "N/A" || echo "$REGISTRY")"
+echo "Minikube:          $([ "$MINIKUBE" = 1 ]         && echo "$([ "$MINIKUBE_RESET" = 1 ] && echo "New" || echo "Yes")" || echo "No")"
+echo "Configure TLS:     $([ "$CONFIGURE_TLS" = 1 ]    && echo "Yes" || echo "No")"
+echo "Deploy Cassandra:  $([ "$DEPLOY_CASSANDRA" = 1 ] && echo "Yes" || echo "No")"
+echo "Build Chirper:     $([ "$BUILD_CHIRPER" = 1 ]    && echo "Yes" || echo "No")"
+echo "Upload Chirper:    $([ "$UPLOAD_CHIRPER" = 1 ]   && echo "Yes" || echo "No")"
+echo "Delete Chirper:    $([ "$DELETE_CHIRPER" = 1 ]   && echo "Yes" || echo "No")"
+echo "Deploy Chirper:    $([ "$DEPLOY_CHIRPER" = 1 ]   && echo "Yes" || echo "No")"
+echo "Deploy nginx:      $([ "$DEPLOY_NGINX" = 1 ]     && echo "Yes" || echo "No")"
+echo
+
+echo 'Note: You must have kubectl setup to point to your Kubernetes cluster, and be logged into your Docker registry if applicable.'
+echo
+read -p 'Press anything to continue, or CTRL-C to exit'
+
+wait-for-pods() {
+    echo -n 'waiting...'
+    while (kubectl get pods 2>&1 | grep '0/\|1/2\|No resources') &>/dev/null; do echo -n '.' && sleep 1; done
+    echo
+}
+
+if [ "$MINIKUBE_RESET" = "1" ]; then
+    echo '****************************'
+    echo '***  Resetting minikube  ***'
+    echo '****************************'
+
+    (minikube delete || true) &>/dev/null
+
+    minikube start --memory 8192
+fi
+
+if [ "$MINIKUBE" = 1 ]; then
+    eval $(minikube docker-env)
+fi
+
+if [ "$CONFIGURE_TLS" = 1 ]; then
+    echo '****************************'
+    echo '***  Configuring TLS     ***'
+    echo '****************************'
+
+    SSL_TEMP_DIR="$(mktemp -d)"
+
+    openssl req \
+        -x509 -newkey rsa:2048 -nodes -days 365 \
+        -keyout "$SSL_TEMP_DIR/tls.key" -out "$SSL_TEMP_DIR/tls.crt" -subj "/CN=localhost"
+
+    kubectl create secret tls chirper-tls-secret "--cert=$SSL_TEMP_DIR/tls.crt" "--key=$SSL_TEMP_DIR/tls.key"
+
+    rm -rf "$SSL_TEMP_DIR"
+fi
+
+if [ "$DEPLOY_CASSANDRA" = 1 ]; then
+    echo '****************************'
+    echo '***  Deploying cassandra ***'
+    echo '****************************'
+
+    kubectl create -f "$RESOURCES_PATH/cassandra"
+    wait-for-pods
+fi
+
+if [ "$BUILD_CHIRPER" = 1 ]; then
+    echo '****************************'
+    echo '***  Building chirper    ***'
+    echo '****************************'
+
+    (cd "$RESOURCES_PATH/../../.." && mvn clean package docker:build)
+fi
+
+if [ "$UPLOAD_CHIRPER" = 1 ]; then
+    IMAGES=()
+    for file in $RESOURCES_PATH/chirper/*; do
+        image="$(jq -M -r ". | if .kind != \"StatefulSet\" then \"\" else .spec.template.spec.containers | map(.image)[0] end" "$file")"
+
+        if [ "$image" != "" ]; then
+            IMAGES+=("$image")
+        fi
+    done
+
+    echo '****************************'
+    echo '***  Uploading chirper   ***'
+    echo '****************************'
+
+    for image in "${IMAGES[@]}"; do
+        docker tag "$image" "$REGISTRY/$image"
+        docker push "$REGISTRY/$image"
+    done
+fi
+
+if [ "$DELETE_CHIRPER" = 1 ]; then
+    echo '****************************'
+    echo '***  Deleting chirper    ***'
+    echo '****************************'
+
+    for file in $RESOURCES_PATH/chirper/*; do
+        kubectl delete -f "$file"
+    done
+fi
+
+if [ "$DEPLOY_CHIRPER" = 1 ]; then
+    echo '****************************'
+    echo '***  Deploying chirper   ***'
+    echo '****************************'
+
+    for file in $RESOURCES_PATH/chirper/*; do
+        if [ "$REGISTRY" = "" ]; then
+            kubectl create -f "$file"
+        else
+            jq -M ". |
+                if .kind == \"StatefulSet\" then
+                    .spec.template.spec.containers |= map(
+                        .image = \"$REGISTRY/\" + .image |
+                        .imagePullPolicy = \"Always\"
+                    )
+                else
+                    .
+                end
+            " "$file" | kubectl create -f -
+        fi
+    done
+    wait-for-pods
+fi
+
+if [ "$DEPLOY_NGINX" = 1 ]; then
+    echo '****************************'
+    echo '***  Deploying nginx     ***'
+    echo '****************************'
+
+    kubectl create -f "$RESOURCES_PATH/nginx"
+    wait-for-pods
+fi
+
+kubectl get all
+
+if [ "$MINIKUBE" = 1 ]; then
+    echo
+    echo
+    echo "Chirper UI (HTTP): $(minikube service --url nginx-ingress | head -n 1)"
+    echo "Chirper UI (HTTPS): $(minikube service --url --https nginx-ingress | tail -n 1)"
+    echo "Kubernetes Dashboard: $(minikube dashboard --url)"
+fi

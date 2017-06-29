@@ -1,0 +1,50 @@
+{
+  "apiVersion": "extensions/v1beta1",
+  "kind": "Ingress",
+  "metadata": {
+    "name": "chirper-ingress",
+    "annotations": {
+      "ingress.kubernetes.io/ssl-redirect": "false"
+    }
+  },
+  "spec": {
+    "tls": [
+      { "secretName": "chirper-tls-secret" }
+    ],
+    "rules": [
+      {
+        "http": {
+          "paths": [
+            {
+              "path": "/api/activity",
+              "backend": {
+                "serviceName": "activityservice",
+                "servicePort": 9000
+              }
+            },
+            {
+              "path": "/api/users",
+              "backend": {
+                "serviceName": "friendservice",
+                "servicePort": 9000
+              }
+            },
+            {
+              "path": "/api/chirps",
+              "backend": {
+                "serviceName": "chirpservice",
+                "servicePort": 9000
+              }
+            },
+            {
+              "backend": {
+                "serviceName": "web",
+                "servicePort": 9000
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -15,7 +15,7 @@ fi
 
 echo "Building project"
 
-mvn clean package docker:build
+mvn -P conductr clean package docker:build
 
 echo "Restarting ConductR to ensure a clean state..."
 sandbox restart

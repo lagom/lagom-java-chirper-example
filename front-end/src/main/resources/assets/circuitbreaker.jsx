@@ -6,7 +6,8 @@ import { IndexRoute, Link, Route, Router } from 'react-router'
 function createCircuitBreakerStream(serviceHostPort, onopen) {
     return {
         connect: function(onEvent) {
-            var stream = new WebSocket("ws://" + serviceHostPort + "/_status/circuit-breaker/stream");
+            var protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+            var stream = new WebSocket(protocol + serviceHostPort + "/_status/circuit-breaker/stream");
             if (onopen) {
                 stream.onopen = function(event) {
                     onopen(stream, event);

@@ -64,7 +64,8 @@ function createActivityStream(userId) {
 function createStream(path, onopen) {
     return {
         connect: function(onChirp) {
-            var stream = new WebSocket("ws://" + location.host + path);
+            var protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+            var stream = new WebSocket(protocol + location.host + path);
             if (onopen) {
                 stream.onopen = function(event) {
                     onopen(stream, event);
