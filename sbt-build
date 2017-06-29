@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Ensure this script fails on all errors
+set -eo pipefail
+
+wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+
+nvm install --lts
+
+sbt -batch test

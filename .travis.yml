@@ -9,7 +9,7 @@ script: $SCRIPT
 env:
   matrix:
     - SCRIPT="mvn test -B"
-    - SCRIPT="sbt -batch test"
+    - SCRIPT="./sbt-build"
 cache:
   directories:
     - $HOME/.m2
