@@ -84,6 +84,8 @@ lazy val frontEnd = project("front-end")
       (sourceDirectory in Assets).value :+
       (resourceDirectory in Assets).value,
 
+    WebpackKeys.envVars in webpack += "BUILD_SYSTEM" -> "sbt",
+
     // Remove to use Scala IDE
     EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)
   )
