@@ -15,6 +15,7 @@ cache:
     - $HOME/.m2
     - $HOME/.ivy2/cache
     - $HOME/.nvm
+    - $HOME/.sbt/launchers
 before_cache:
   # Ensure changes to the cache aren't persisted
   - rm -rf $HOME/.m2/repository/com/lightbend/lagom/sample/chirper
