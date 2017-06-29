@@ -1,11 +1,15 @@
-language: java
+language: scala
 sudo: false
 jdk:
   - oraclejdk8
+# This skips the install step.
+# See https://docs.travis-ci.com/user/customizing-the-build#Skipping-the-Installation-Ste
+install: true
+script: $SCRIPT
 env:
   matrix:
-    - SCRIPT="mvn test"
-    - SCRIPT="sbt test"
+    - SCRIPT="mvn test -B"
+    - SCRIPT="sbt -batch test"
 cache:
   directories:
     - $HOME/.m2
