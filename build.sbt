@@ -1,3 +1,7 @@
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import com.typesafe.sbt.web.SbtWeb
+
 organization in ThisBuild := "com.lightbend.lagom.sample.chirper"
 
 // the Scala version that will be used for cross-compiled libraries
@@ -75,7 +79,26 @@ lazy val frontEnd = project("front-end")
 
     includeFilter in webpack := "*.js" || "*.jsx",
     compile in Compile := (compile in Compile).dependsOn(webpack.toTask("")).value,
+    mappings in (Compile, packageBin) := {
+      val compiledJsFiles = (WebKeys.public in Assets).value.listFiles().toSeq
 
+      val publicJsFileMappings = compiledJsFiles.map { jsFile =>
+        jsFile -> s"public/${jsFile.getName}"
+      }
+
+      val webJarsPathPrefix = SbtWeb.webJarsPathPrefix.value
+      val compiledWebJarsBaseDir = (classDirectory in Assets).value / webJarsPathPrefix
+      val compiledFilesWebJars = compiledJsFiles.map { compiledJs =>
+        val compiledJsWebJar = compiledWebJarsBaseDir / compiledJs.getName
+        Files.copy(compiledJs.toPath, compiledJsWebJar.toPath, StandardCopyOption.REPLACE_EXISTING)
+        compiledJsWebJar
+      }
+      val webJarJsFileMappings = compiledFilesWebJars.map { jsFile =>
+        jsFile -> s"${webJarsPathPrefix}/${jsFile.getName}"
+      }
+
+      (mappings in (Compile, packageBin)).value ++ publicJsFileMappings ++ webJarJsFileMappings
+    },
     sourceDirectory in Assets := baseDirectory.value / "src" / "main" / "resources" / "assets",
     resourceDirectory in Assets := baseDirectory.value / "src" / "main" / "resources" / "public",
 
