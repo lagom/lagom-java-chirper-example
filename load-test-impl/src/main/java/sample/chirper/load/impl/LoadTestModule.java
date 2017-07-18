@@ -13,7 +13,7 @@ import sample.chirper.load.api.LoadTestService;
 public class LoadTestModule extends AbstractModule implements ServiceGuiceSupport {
   @Override
   protected void configure() {
-    bindServices(serviceBinding(LoadTestService.class, LoadTestServiceImpl.class));
+    bindService(LoadTestService.class, LoadTestServiceImpl.class);
     bindClient(FriendService.class);
     bindClient(ChirpService.class);
     bindClient(ActivityStreamService.class);

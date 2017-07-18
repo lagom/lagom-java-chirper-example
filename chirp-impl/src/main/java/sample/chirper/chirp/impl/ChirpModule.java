@@ -10,7 +10,7 @@ import sample.chirper.chirp.api.ChirpService;
 public class ChirpModule extends AbstractModule implements ServiceGuiceSupport {
     @Override
     protected void configure() {
-        bindServices(serviceBinding(ChirpService.class, ChirpServiceImpl.class));
+        bindService(ChirpService.class, ChirpServiceImpl.class);
         bind(ChirpTopic.class).to(ChirpTopicImpl.class);
         bind(ChirpRepository.class).to(ChirpRepositoryImpl.class);
     }

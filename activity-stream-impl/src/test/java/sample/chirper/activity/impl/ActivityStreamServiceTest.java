@@ -28,7 +28,7 @@ import akka.stream.testkit.javadsl.TestSink;
 public class ActivityStreamServiceTest {
 
   private final Setup setup = defaultSetup().withCluster(false)
-      .withConfigureBuilder(b -> b.overrides(bind(FriendService.class).to(FriendServiceStub.class),
+      .configureBuilder(b -> b.overrides(bind(FriendService.class).to(FriendServiceStub.class),
           bind(ChirpService.class).to(ChirpServiceStub.class)));
 
   @Test

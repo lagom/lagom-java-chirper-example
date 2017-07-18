@@ -10,6 +10,6 @@ import com.lightbend.lagom.javadsl.server.ServiceGuiceSupport;
 public class FriendModule extends AbstractModule implements ServiceGuiceSupport {
   @Override
   protected void configure() {
-    bindServices(serviceBinding(FriendService.class, FriendServiceImpl.class));
+    bindService(FriendService.class, FriendServiceImpl.class);
   }
 }

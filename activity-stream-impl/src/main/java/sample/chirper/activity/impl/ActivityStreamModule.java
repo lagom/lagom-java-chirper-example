@@ -14,7 +14,7 @@ public class ActivityStreamModule extends AbstractModule implements ServiceGuice
 
   @Override
   protected void configure() {
-    bindServices(serviceBinding(ActivityStreamService.class, ActivityStreamServiceImpl.class));
+    bindService(ActivityStreamService.class, ActivityStreamServiceImpl.class);
     bindClient(FriendService.class);
     bindClient(ChirpService.class);
   }
