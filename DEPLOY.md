@@ -826,7 +826,7 @@ Similarly, either issue `watch` on `conduct agents`, or execute `conduct agents`
 $ watch conduct agents
 ```
 
-Eventually (this will take at least a minute to occur), we will see the agent on `192.168.10.3` can no longer be observed by any remaining member.
+Eventually (this may require serveral minutes to complete), we will see the agent on `192.168.10.3` can no longer be observed by any remaining member.
 
 ```
 ADDRESS                                                                            ROLES                            OBSERVED BY
