@@ -13,11 +13,15 @@ MINIKUBE=0
 MINIKUBE_RESET=0
 OPTION=""
 
-(which kubectl &>/dev/null) || (echo '* missing kubectl, is it installed?' && exit 1)
-(which bx &>/dev/null) || (echo '* missing bx, is it installed?' && exit 1)
-(which jq &>/dev/null) || (echo '* missing jq, is it installed?' && exit 1)
-(which docker &>/dev/null) || (echo '* missing docker; is it installed?' && exit 1)
-(which mvn &>/dev/null) || (echo '* missing mvn; is it installed?' && exit 1)
+die() {
+    echo "$@" && exit 1
+}
+
+(which kubectl &>/dev/null) || die '* missing kubectl, is it installed?'
+(which bx &>/dev/null) || die '* missing bx, is it installed?'
+(which jq &>/dev/null) || die '* missing jq, is it installed?'
+(which docker &>/dev/null) || die '* missing docker; is it installed?'
+(which mvn &>/dev/null) || die '* missing mvn; is it installed?'
 
 if [[ "$#" -eq 0 ]]; then
     echo "$0 [--minikube] [--new-minikube] [--registry REGISTRY] [--tls] [--cassandra] [--build] [--deploy] [--delete] [--nginx] [--all]" >&1
@@ -27,12 +31,12 @@ fi
 while test $# -gt 0; do
     case "$1" in
         --minikube)
-            (which minikube &>/dev/null) || (echo '* missing minikube; is it installed?' && exit 1)
+            (which minikube &>/dev/null) || die '* missing minikube; is it installed?'
             MINIKUBE=1
             REGISTRY=""
             ;;
         --new-minikube)
-            (which minikube &>/dev/null) || (echo '* missing minikube; is it installed?' && exit 1)
+            (which minikube &>/dev/null) || die '* missing minikube; is it installed?'
             MINIKUBE=1
             MINIKUBE_RESET=1
             REGISTRY=""
@@ -125,7 +129,7 @@ if [ "$MINIKUBE" = 1 ]; then
     eval $(minikube docker-env)
 fi
 
-(kubectl get nodes &>/dev/null) || (echo '* kubectl cannot contact cluster, is it setup correctly?' && exit 1)
+(kubectl get nodes &>/dev/null) || die '* kubectl cannot contact cluster, is it setup correctly?'
 
 if [ "$CONFIGURE_TLS" = 1 ]; then
     echo '****************************'
