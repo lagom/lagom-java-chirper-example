@@ -137,7 +137,7 @@ lazy val frontEnd = project("front-end")
     resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       "org.webjars" % "foundation" % "5.5.2",
-      "org.webjars" %% "webjars-play" % "2.6.2",
+      "org.webjars" %% "webjars-play" % "4c5fd3f571de5a5714fde2d5bb776cb865a5032a",
       lagomJavadslClient
     ),
 
