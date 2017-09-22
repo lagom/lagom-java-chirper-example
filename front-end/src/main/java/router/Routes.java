@@ -68,12 +68,17 @@ public class Routes implements Router {
                                 .run(materializer)
                 )
                 .GET("/assets/*file").routeAsync((String file) ->
-                        assets.at("/public", file, false).asJava()
-                                .apply(requestHeader()).run(materializer))
+                        assets.at("/public", file, false)
+                                .asJava()
+                                .apply(requestHeader())
+                                .run(materializer)
+                )
                 .GET("/webjars/*file").routeAsync((String file) ->
-                        webJars.at(file).asJava()
-                                .apply(requestHeader()).run(materializer))
-
+                        webJars.at(file)
+                                .asJava()
+                                .apply(requestHeader())
+                                .run(materializer)
+                )
                 .build().asScala();
     }
 
