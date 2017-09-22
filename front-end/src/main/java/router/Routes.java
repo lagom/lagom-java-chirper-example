@@ -15,6 +15,9 @@ import scala.collection.Seq;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.webjars.play.RequireJS;
+import org.webjars.play.WebJarAssets;
+
 /**
  * We use the Java DSL router instead of the Play routes file, so that this project can also be built by Maven, which
  * as yet does not have a plugin for compiling Play routers.
@@ -25,6 +28,7 @@ public class Routes implements Router {
     private final Application application;
     private final Assets assets;
     private final WebJarAssets webJars;
+    private final RequireJS requireJs;
     private final Materializer materializer;
 
     private final Router router;
@@ -34,9 +38,11 @@ public class Routes implements Router {
                   Assets assets,
                   WebJarAssets webJars,
                   Materializer materializer) {
+                  RequireJS requireJs,
         this.application = application;
         this.assets = assets;
         this.webJars = webJars;
+        this.requireJs = requireJs;
         this.materializer = materializer;
 
         this.router = buildRouter();
@@ -52,6 +58,12 @@ public class Routes implements Router {
                 .GET("/cb").routeTo(application::circuitBreaker)
 
                 // Assets
+                .GET("/webjars/_requirejs").routeAsync(() ->
+                        requireJs.setup()
+                                .asJava()
+                                .apply(requestHeader())
+                                .run(materializer)
+                )
                 .GET("/assets/*file").routeAsync((String file) ->
                         assets.at("/public", file, false).asJava()
                                 .apply(requestHeader()).run(materializer))
