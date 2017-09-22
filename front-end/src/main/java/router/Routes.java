@@ -31,7 +31,9 @@ public class Routes implements Router {
 
     @Inject
     public Routes(Application application,
-            Assets assets, WebJarAssets webJars, Materializer materializer) {
+                  Assets assets,
+                  WebJarAssets webJars,
+                  Materializer materializer) {
         this.application = application;
         this.assets = assets;
         this.webJars = webJars;
