@@ -31,25 +31,28 @@ public class Routes implements Router {
     private final RequireJS requireJs;
     private final Materializer materializer;
 
+    private final RoutingDsl routingDsl;
     private final Router router;
 
     @Inject
     public Routes(Application application,
                   Assets assets,
                   WebJarAssets webJars,
-                  Materializer materializer) {
                   RequireJS requireJs,
+                  Materializer materializer,
+                  RoutingDsl routingDsl) {
         this.application = application;
         this.assets = assets;
         this.webJars = webJars;
         this.requireJs = requireJs;
         this.materializer = materializer;
 
+        this.routingDsl = routingDsl;
         this.router = buildRouter();
     }
 
     private Router buildRouter() {
-        return new RoutingDsl()
+        return this.routingDsl
                 // Index
                 .GET("/").routeTo(application::index)
                 .GET("/signup").routeTo(application::index)
