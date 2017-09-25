@@ -26,3 +26,6 @@ bin/
 # IDEA specific
 .idea
 *.iml
+
+# helm charts
+*.tgz

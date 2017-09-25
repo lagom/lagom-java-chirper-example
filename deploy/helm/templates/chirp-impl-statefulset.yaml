@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: chirpservice
+spec:
+  replicas: {{ .Values.chirper.chirp.replicas }}
+  serviceName: chirpservice
+  template:
+    metadata:
+      labels:
+        app: chirpservice
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: "{{ .Release.Name }}"
+        heritage: "{{ .Release.Service }}"        
+    spec:
+      containers:
+      - env:
+        - name: CASSANDRA_SERVICE_NAME
+          value: "{{ .Values.chirper.cassandra.service }}"
+        - name: APPLICATION_SECRET
+          value: "{{ .Values.chirper.chirp.secret }}"
+        - name: CHIRPSERVICE_BIND_PORT
+          value: '9000'
+        - name: CHIRPSERVICE_BIND_IP
+          value: 0.0.0.0
+        - name: AKKA_ACTOR_SYSTEM_NAME
+          value: chirpservice-v1
+        - name: AKKA_REMOTING_BIND_PORT
+          value: '2551'
+        - name: AKKA_REMOTING_BIND_HOST
+          value: $HOSTNAME.chirpservice.{{ .Release.Namespace }}.svc.cluster.local
+        - name: AKKA_SEED_NODES
+          value: chirpservice-0.chirpservice.{{ .Release.Namespace }}.svc.cluster.local:2551,chirpservice-1.chirpservice.{{ .Release.Namespace }}.svc.cluster.local:2551,chirpservice-2.chirpservice.{{ .Release.Namespace }}.svc.cluster.local:2551
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: "{{ .Values.chirper.chirp.image.repo }}:{{ .Values.chirper.chirp.image.tag }}"
+        imagePullPolicy: "{{ .Values.chirper.imagePullPolicy }}"
+        name: chirpservice
+        ports:
+        - containerPort: 9000
+          name: http-lagom-api
+        - containerPort: 2551
+          name: akka-remote
+        readinessProbe:
+          httpGet:
+            path: /_status/circuit-breaker/current
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 5

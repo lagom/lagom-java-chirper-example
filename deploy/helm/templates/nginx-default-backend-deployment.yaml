@@ -1,0 +1,34 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-default-backend
+spec:
+  replicas: {{ .Values.chirper.nginx.backend.replicas }}
+  template:
+    metadata:
+      labels:
+        app: nginx-default-backend
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: "{{ .Release.Name }}"
+        heritage: "{{ .Release.Service }}"             
+    spec:
+      containers:
+      - image: "{{ .Values.chirper.nginx.backend.image.repo }}:{{ .Values.chirper.nginx.backend.image.tag }}"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        name: nginx-default-backend
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 10m
+            memory: 20Mi
+          requests:
+            cpu: 10m
+      terminationGracePeriodSeconds: 60

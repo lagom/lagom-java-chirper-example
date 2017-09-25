@@ -1,0 +1,35 @@
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  replicas: 1
+  serviceName: web
+  template:
+    metadata:
+      labels:
+        app: web
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: "{{ .Release.Name }}"
+        heritage: "{{ .Release.Service }}"     
+    spec:
+      containers:
+      - env:
+        - name: CASSANDRA_SERVICE_NAME
+          value: "{{ .Values.chirper.cassandra.service }}"
+        - name: WEB_BIND_PORT
+          value: '9000'
+        - name: WEB_BIND_IP
+          value: 0.0.0.0
+        image: "{{ .Values.chirper.front_end.image.repo }}:{{ .Values.chirper.front_end.image.tag }}"
+        imagePullPolicy: "{{ .Values.chirper.imagePullPolicy }}"
+        name: web
+        ports:
+        - containerPort: 9000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 5
