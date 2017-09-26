@@ -5,3 +5,4 @@
 * [Deploy to minikube](deploy-to-minikube.md)
 * [Deploy to Bluemix Container Service (lite)](deploy-to-bks-lite.md)
 * [Deploy to Bluemix Container Service (paid)](deploy-to-bks-paid.md)
+* [Deploy to IBM Cloud Private](deploy-to-ibm-cloud-private.md)

@@ -121,8 +121,7 @@ OK
 
 ### Build the Chirper Docker Images
 
-The next step is to build the Chirper containers, to do this we're going to be
-a bit cheeky and use the official Maven Docker image to build it for us by mapping in both our docker socket and the chirper source:
+The next step is to build the Chirper containers, Maven supports building Docker images so its fairly easy:
 
 ```bash
 $ mvn clean package docker:build

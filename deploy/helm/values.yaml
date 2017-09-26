@@ -6,6 +6,7 @@ chirper:
     tls:
       secret: ~
   imagePullPolicy: IfNotPresent
+  imagePullSecret:
 
   activity_stream:
     replicas: 1

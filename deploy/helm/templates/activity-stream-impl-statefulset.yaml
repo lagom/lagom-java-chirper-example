@@ -14,6 +14,10 @@ spec:
         release: "{{ .Release.Name }}"
         heritage: "{{ .Release.Service }}"        
     spec:
+{{- if .Values.chirper.imagePullSecret }}    
+      imagePullSecrets:
+        - name: "{{ .Values.chirper.imagePullSecret }}"
+{{- end }}        
       containers:
       - env:
         - name: CASSANDRA_SERVICE_NAME
