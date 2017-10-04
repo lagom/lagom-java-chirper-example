@@ -7,7 +7,7 @@ libraryDependencies ++= {
 
   val defaultPlugins: Seq[ModuleID] =
     Seq(
-      sbtPluginExtra("com.lightbend.lagom" % "lagom-sbt-plugin" % "1.3.8", sbtV, scalaV),
+      sbtPluginExtra("com.lightbend.lagom" % "lagom-sbt-plugin" % "1.3.9", sbtV, scalaV),
       sbtPluginExtra("com.github.stonexx.sbt" % "sbt-webpack" % "1.2.0", sbtV, scalaV),
       sbtPluginExtra("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.1.0", sbtV, scalaV)
     )
