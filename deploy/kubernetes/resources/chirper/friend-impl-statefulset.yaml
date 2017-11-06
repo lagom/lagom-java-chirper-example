@@ -1,0 +1,67 @@
+---
+  apiVersion: "apps/v1beta1"
+  kind: "StatefulSet"
+  metadata: 
+    name: "friendservice"
+  spec: 
+    serviceName: "friendservice"
+    replicas: 1
+    template: 
+      metadata: 
+        labels: 
+          app: "friendservice"
+      spec: 
+        containers: 
+          - 
+            name: "friendservice"
+            image: "chirper/friend-impl"
+            imagePullPolicy: "Never"
+            ports: 
+              - 
+                containerPort: 9000
+                name: "tcp-lagom-api"
+              - 
+                containerPort: 2551
+                name: "akka-remote"
+            env: 
+              - 
+                name: "CASSANDRA_SERVICE_NAME"
+                value: "_native._tcp.cassandra.default.svc.cluster.local"
+              - 
+                name: "APPLICATION_SECRET"
+                value: "friendservice-application-secret"
+              - 
+                name: "FRIENDSERVICE_BIND_PORT"
+                value: "9000"
+              - 
+                name: "FRIENDSERVICE_BIND_IP"
+                value: "0.0.0.0"
+              - 
+                name: "AKKA_ACTOR_SYSTEM_NAME"
+                value: "friendservice-v1"
+              - 
+                name: "AKKA_REMOTING_BIND_PORT"
+                value: "2551"
+              - 
+                name: "AKKA_REMOTING_BIND_HOST"
+                value: "$HOSTNAME.friendservice.default.svc.cluster.local"
+              - 
+                name: "AKKA_SEED_NODES"
+                value: "friendservice-0.friendservice.default.svc.cluster.local:2551,friendservice-1.friendservice.default.svc.cluster.local:2551,friendservice-2.friendservice.default.svc.cluster.local:2551"
+              - 
+                name: "POD_NAME"
+                valueFrom: 
+                  fieldRef: 
+                    fieldPath: "metadata.name"
+              - 
+                name: "POD_NAMESPACE"
+                valueFrom: 
+                  fieldRef: 
+                    fieldPath: "metadata.namespace"
+            readinessProbe: 
+              httpGet: 
+                path: "/_status/circuit-breaker/current"
+                port: 9000
+              initialDelaySeconds: 5
+              periodSeconds: 5
+

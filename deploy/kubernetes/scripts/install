@@ -20,6 +20,7 @@ die() {
 (which kubectl &>/dev/null) || die '* missing kubectl, is it installed?'
 (which bx &>/dev/null) || die '* missing bx, is it installed?'
 (which jq &>/dev/null) || die '* missing jq, is it installed?'
+(which yq &>/dev/null) || die '* missing yq, is it installed?'
 (which docker &>/dev/null) || die '* missing docker; is it installed?'
 (which mvn &>/dev/null) || die '* missing mvn; is it installed?'
 
@@ -167,7 +168,7 @@ fi
 if [ "$UPLOAD_CHIRPER" = 1 ]; then
     IMAGES=()
     for file in $RESOURCES_PATH/chirper/*; do
-        image="$(jq -M -r ". | if .kind != \"StatefulSet\" then \"\" else .spec.template.spec.containers | map(.image)[0] end" "$file")"
+        image="$(yq -M -r ". | if .kind != \"StatefulSet\" then \"\" else .spec.template.spec.containers | map(.image)[0] end" "$file")"
 
         if [ "$image" != "" ]; then
             IMAGES+=("$image")
@@ -203,7 +204,7 @@ if [ "$DEPLOY_CHIRPER" = 1 ]; then
         if [ "$REGISTRY" = "" ]; then
             kubectl create -f "$file"
         else
-            jq -M ". |
+            yq -M ". |
                 if .kind == \"StatefulSet\" then
                     .spec.template.spec.containers |= map(
                         .image = \"$REGISTRY/\" + .image |
