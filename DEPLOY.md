@@ -82,7 +82,7 @@ Clone the Lagom Chirper example into your machine.
 ```bash
 mkdir -p ~/examples
 cd examples
-git clone https://github.com/lagom/activator-lagom-java-chirper.git
+git clone https://github.com/lagom/lagom-java-chirper-example.git
 ```
 
 ### Deploying Lagom Chirper
@@ -96,7 +96,7 @@ sandbox run 2.0.0 -n 3 -f visualization
 Go to the cloned Lagom Chirper directory
 
 ```bash
-cd ~/examples/activator-lagom-java-chirper
+cd ~/examples/lagom-java-chirper-example
 ```
 
 Deploy the Lagom Chirper application. It is packaged as both SBT and Maven. You'll want to pick the build tool you're most comfortable with.
@@ -127,7 +127,7 @@ _Bundle_ is a special term coined by ConductR:
 Once deployed, the `conduct info` command will allow you to inspect the state of the deployed services. When you run `conduct info`, you should see something similar to this.
 
 ```
-Felixs-MBP-2:activator-lagom-java-chirper felixsatyaputra$ conduct info
+Felixs-MBP-2:lagom-java-chirper-example felixsatyaputra$ conduct info
 ID               NAME                  VER  #REP  #STR  #RUN  ROLES
 89fe6ec          activity-stream-impl   v1     1     0     1  web
 73595ec          visualizer             v2     1     0     1  web
@@ -348,7 +348,7 @@ We now have a new instance of the `Friend` service running alongside the existin
 
 ```
 $ conduct info
-Felixs-MBP-2:activator-lagom-java-chirper felixsatyaputra$ conduct info
+Felixs-MBP-2:lagom-java-chirper-example felixsatyaputra$ conduct info
 ID               NAME                  VER  #REP  #STR  #RUN  ROLES
 89fe6ec          activity-stream-impl   v1     1     0     1  web
 73595ec          visualizer             v2     1     0     1  web
@@ -487,7 +487,7 @@ conduct service-names
 You should see the output similar to the following.
 
 ```bash
-Felixs-MBP-2:activator-lagom-java-chirper felixsatyaputra$ conduct service-names
+Felixs-MBP-2:lagom-java-chirper-example felixsatyaputra$ conduct service-names
 SERVICE NAME     BUNDLE ID        BUNDLE NAME           STATUS
 activityservice  89fe6ec          activity-stream-impl  Running
 cas_native       1acac1d          cassandra             Running
@@ -739,7 +739,7 @@ conduct run front-end --scale 3
 Once done, the state should look similar to the following.
 
 ```
-Felixs-MacBook-Pro-2:activator-lagom-java-chirper felixsatyaputra$ conduct info
+Felixs-MacBook-Pro-2:lagom-java-chirper-example felixsatyaputra$ conduct info
 ID               NAME                  VER  #REP  #STR  #RUN  ROLES
 acc2d2b          friend-impl            v1     3     0     1  web
 bdfa43d-e5f3504  conductr-haproxy       v2     3     0     1  haproxy
@@ -776,7 +776,7 @@ conduct agents
 The output should be similar to the following, i.e. there should be `3` agent instances running.
 
 ```
-Felixs-MBP-2:activator-lagom-java-chirper felixsatyaputra$ conduct agents
+Felixs-MBP-2:lagom-java-chirper-example felixsatyaputra$ conduct agents
 ADDRESS                                                                            ROLES                            OBSERVED BY
 akka.tcp://conductr-agent@192.168.10.1:2552/user/reaper/cluster-client#1659172705  web    akka.tcp://conductr@192.168.10.2:9004
 akka.tcp://conductr-agent@192.168.10.2:2552/user/reaper/cluster-client#-966725902  web    akka.tcp://conductr@192.168.10.2:9004
@@ -879,7 +879,7 @@ UID          ADDRESS                                ROLES       STATUS  REACHABL
 Similarly, the `conduct agents` will eventually indicate that the restarted agent had rejoined the cluster.
 
 ```
-Felixs-MacBook-Pro-2:activator-lagom-java-chirper felixsatyaputra$ conduct agents
+Felixs-MacBook-Pro-2:lagom-java-chirper-example felixsatyaputra$ conduct agents
 ADDRESS                                                                            ROLES                            OBSERVED BY
 akka.tcp://conductr-agent@192.168.10.1:2552/user/reaper/cluster-client#1659172705  web    akka.tcp://conductr@192.168.10.2:9004
 akka.tcp://conductr-agent@192.168.10.2:2552/user/reaper/cluster-client#-966725902  web    akka.tcp://conductr@192.168.10.2:9004

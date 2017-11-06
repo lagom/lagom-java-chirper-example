@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lagom/activator-lagom-java-chirper.git"
+    "url": "https://github.com/lagom/lagom-java-chirper-example.git"
   },
   "license": "Apache-2.0",
   "devDependencies": {
