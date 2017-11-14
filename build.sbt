@@ -1,5 +1,6 @@
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+
 import sbt.Resolver.bintrayRepo
 import com.typesafe.sbt.web.SbtWeb
 import com.typesafe.sbt.packager.docker._
@@ -7,7 +8,7 @@ import com.typesafe.sbt.packager.docker._
 organization in ThisBuild := "com.lightbend.lagom.sample.chirper"
 
 // the Scala version that will be used for cross-compiled libraries
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := "2.11.12"
 
 // SCALA SUPPORT: Remove the line below
 EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
@@ -197,7 +198,12 @@ lazy val loadTestImpl = project("load-test-impl")
 def project(id: String) = Project(id, base = file(id))
   .settings(javacOptions in compile ++= Seq("-encoding", "UTF-8", "-source", "1.8", "-target", "1.8", "-Xlint:unchecked", "-Xlint:deprecation"))
   .settings(jacksonParameterNamesJavacSettings: _*) // applying it to every project even if not strictly needed.
-
+  .settings(
+    javaOptions in Universal ++= Seq(
+      "-J-XX:+UnlockExperimentalVMOptions",
+      "-J-XX:+UseCGroupMemoryLimitForHeap"
+    )
+  )
 
 // See https://github.com/FasterXML/jackson-module-parameter-names
 lazy val jacksonParameterNamesJavacSettings = Seq(

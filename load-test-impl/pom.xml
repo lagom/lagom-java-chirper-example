@@ -108,7 +108,7 @@
                         <image>
                             <build>
                                 <entryPoint>
-                                    java -cp '/maven/*' -Dplay.crypto.secret="${APPLICATION_SECRET:-none}" -Dhttp.address="$LOADTESTSERVICE_BIND_IP" -Dhttp.port="$LOADTESTSERVICE_BIND_PORT" play.core.server.ProdServerStart
+                                    java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -cp '/maven/*' -Dplay.crypto.secret="${APPLICATION_SECRET:-none}" -Dhttp.address="$LOADTESTSERVICE_BIND_IP" -Dhttp.port="$LOADTESTSERVICE_BIND_PORT" play.core.server.ProdServerStart
                                 </entryPoint>
                             </build>
                         </image>

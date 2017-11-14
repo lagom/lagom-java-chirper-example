@@ -103,7 +103,7 @@
                         <image>
                             <build>
                                 <entryPoint>
-                                    java -cp '/maven/*' -Dhttp.address="$(eval "echo $ACTIVITYSERVICE_BIND_IP")" -Dhttp.port="$(eval "echo $ACTIVITYSERVICE_BIND_PORT")" play.core.server.ProdServerStart
+                                    java -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -cp '/maven/*' -Dhttp.address="$(eval "echo $ACTIVITYSERVICE_BIND_IP")" -Dhttp.port="$(eval "echo $ACTIVITYSERVICE_BIND_PORT")" play.core.server.ProdServerStart
                                 </entryPoint>
                             </build>
                         </image>
