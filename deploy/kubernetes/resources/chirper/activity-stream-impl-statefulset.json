@@ -19,6 +19,11 @@
             "name": "activityservice",
             "image": "chirper/activity-stream-impl",
             "imagePullPolicy": "Never",
+            "resources": {
+              "requests": {
+                "memory": "512Mi"
+              }
+            },
             "ports": [
               {
                 "containerPort": 9000,

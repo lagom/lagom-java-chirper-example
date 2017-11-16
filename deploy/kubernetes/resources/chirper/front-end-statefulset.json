@@ -19,6 +19,11 @@
             "name": "web",
             "image": "chirper/front-end",
             "imagePullPolicy": "Never",
+            "resources": {
+              "requests": {
+                "memory": "512Mi"
+              }
+            },
             "ports": [
               { "containerPort": 9000 }
             ],

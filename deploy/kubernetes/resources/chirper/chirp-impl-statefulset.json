@@ -19,6 +19,11 @@
             "name": "chirpservice",
             "image": "chirper/chirp-impl",
             "imagePullPolicy": "Never",
+            "resources": {
+              "requests": {
+                "memory": "512Mi"
+              }
+            },
             "ports": [
               {
                 "containerPort": 9000,
