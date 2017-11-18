@@ -1,18 +1,17 @@
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import sbt.Resolver.bintrayRepo
-import com.typesafe.sbt.web.SbtWeb
-import com.typesafe.sbt.packager.docker._
 
 organization in ThisBuild := "com.lightbend.lagom.sample.chirper"
 
 // the Scala version that will be used for cross-compiled libraries
-scalaVersion in ThisBuild := "2.11.8"
+scalaVersion in ThisBuild := "2.11.12"
 
 // SCALA SUPPORT: Remove the line below
 EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
 
 lazy val buildVersion = sys.props.getOrElse("buildVersion", "1.0.0-SNAPSHOT")
+
+version in ThisBuild := buildVersion
 
 lazy val friendApi = project("friend-api")
   .settings(
@@ -21,34 +20,18 @@ lazy val friendApi = project("friend-api")
   )
 
 lazy val friendImpl = project("friend-impl")
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .settings(
-    version := buildVersion,
-    version in Docker := buildVersion,
-    dockerBaseImage := "openjdk:8-jre-alpine",
-    dockerRepository := Some(BuildTarget.dockerRepository),
-    dockerUpdateLatest := true,
-    dockerEntrypoint ++= """-Dhttp.address="$(eval "echo $FRIENDSERVICE_BIND_IP")" -Dhttp.port="$(eval "echo $FRIENDSERVICE_BIND_PORT")" -Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_HOST")" -Dakka.remote.netty.tcp.bind-hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")" -Dakka.remote.netty.tcp.port="$(eval "echo $AKKA_REMOTING_PORT")" -Dakka.remote.netty.tcp.bind-port="$(eval "echo $AKKA_REMOTING_BIND_PORT")" $(IFS=','; I=0; for NODE in $AKKA_SEED_NODES; do echo "-Dakka.cluster.seed-nodes.$I=akka.tcp://friendservice@$NODE"; I=$(expr $I + 1); done)""".split(" ").toSeq,
-    dockerCommands :=
-      dockerCommands.value.flatMap {
-        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
-        case c @ Cmd("FROM", _) => Seq(c, ExecCmd("RUN", "/bin/sh", "-c", "apk add --no-cache bash && ln -sf /bin/bash /bin/sh"))
-        case v => Seq(v)
-      },
-    resolvers += bintrayRepo("hajile", "maven"),
-    resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslTestKit
     )
   )
-  .settings(BuildTarget.additionalSettings)
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(friendApi)
 
 lazy val chirpApi = project("chirp-api")
   .settings(
-    version := buildVersion,
     libraryDependencies ++= Seq(
       lagomJavadslApi,
       lagomJavadslJackson
@@ -56,90 +39,44 @@ lazy val chirpApi = project("chirp-api")
   )
 
 lazy val chirpImpl = project("chirp-impl")
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .settings(
-    version := buildVersion,
-    version in Docker := buildVersion,
-    dockerBaseImage := "openjdk:8-jre-alpine",
-    dockerRepository := Some(BuildTarget.dockerRepository),
-    dockerUpdateLatest := true,
-    dockerEntrypoint ++= """-Dhttp.address="$(eval "echo $CHIRPSERVICE_BIND_IP")" -Dhttp.port="$(eval "echo $CHIRPSERVICE_BIND_PORT")" -Dakka.remote.netty.tcp.hostname="$(eval "echo $AKKA_REMOTING_HOST")" -Dakka.remote.netty.tcp.bind-hostname="$(eval "echo $AKKA_REMOTING_BIND_HOST")" -Dakka.remote.netty.tcp.port="$(eval "echo $AKKA_REMOTING_PORT")" -Dakka.remote.netty.tcp.bind-port="$(eval "echo $AKKA_REMOTING_BIND_PORT")" $(IFS=','; I=0; for NODE in $AKKA_SEED_NODES; do echo "-Dakka.cluster.seed-nodes.$I=akka.tcp://chirpservice@$NODE"; I=$(expr $I + 1); done)""".split(" ").toSeq,
-    dockerCommands :=
-      dockerCommands.value.flatMap {
-        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
-        case c @ Cmd("FROM", _) => Seq(c, ExecCmd("RUN", "/bin/sh", "-c", "apk add --no-cache bash && ln -sf /bin/bash /bin/sh"))
-        case v => Seq(v)
-      },
-    resolvers += bintrayRepo("hajile", "maven"),
-    resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       lagomJavadslPersistenceCassandra,
       lagomJavadslPubSub,
       lagomJavadslTestKit
     )
   )
-  .settings(BuildTarget.additionalSettings)
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(chirpApi)
 
 lazy val activityStreamApi = project("activity-stream-api")
   .settings(
-    version := buildVersion,
     version in Docker := buildVersion,
     libraryDependencies += lagomJavadslApi
   )
   .dependsOn(chirpApi)
 
 lazy val activityStreamImpl = project("activity-stream-impl")
-  .enablePlugins(LagomJava)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .settings(
-    version := buildVersion,
-    version in Docker := buildVersion,
-    dockerBaseImage := "openjdk:8-jre-alpine",
-    dockerRepository := Some(BuildTarget.dockerRepository),
-    dockerUpdateLatest := true,
-    dockerEntrypoint ++= """-Dhttp.address="$(eval "echo $ACTIVITYSERVICE_BIND_IP")" -Dhttp.port="$(eval "echo $ACTIVITYSERVICE_BIND_PORT")"""".split(" ").toSeq,
-    dockerCommands :=
-      dockerCommands.value.flatMap {
-        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
-        case c @ Cmd("FROM", _) => Seq(c, ExecCmd("RUN", "/bin/sh", "-c", "apk add --no-cache bash && ln -sf /bin/bash /bin/sh"))
-        case v => Seq(v)
-      },
-    resolvers += bintrayRepo("hajile", "maven"),
-    resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       lagomJavadslCluster,
       lagomJavadslTestKit
     )
   )
-  .settings(BuildTarget.additionalSettings)
   .dependsOn(activityStreamApi, chirpApi, friendApi)
 
 lazy val frontEnd = project("front-end")
-  .enablePlugins(PlayJava, LagomPlay)
+  .enablePlugins(PlayJava, LagomPlay, SbtReactiveAppPlugin)
   .disablePlugins(PlayLayoutPlugin)
   .settings(
-    version := buildVersion,
-    version in Docker := buildVersion,
     routesGenerator := InjectedRoutesGenerator,
-    dockerBaseImage := "openjdk:8-jre-alpine",
-    dockerRepository := Some(BuildTarget.dockerRepository),
-    dockerUpdateLatest := true,
-    dockerEntrypoint ++= """-Dhttp.address="$(eval "echo $WEB_BIND_IP")" -Dhttp.port="$(eval "echo $WEB_BIND_PORT")"""".split(" ").toSeq,
-    dockerCommands :=
-      dockerCommands.value.flatMap {
-        case ExecCmd("ENTRYPOINT", args @ _*) => Seq(Cmd("ENTRYPOINT", args.mkString(" ")))
-        case c @ Cmd("FROM", _) => Seq(c, ExecCmd("RUN", "/bin/sh", "-c", "apk add --no-cache bash && ln -sf /bin/bash /bin/sh"))
-        case v => Seq(v)
-      },
-    resolvers += bintrayRepo("hajile", "maven"),
-    resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
       "org.webjars" % "foundation" % "5.5.2",
       "org.webjars" %% "webjars-play" % "2.5.0",
       lagomJavadslClient
     ),
-
     includeFilter in webpack := "*.js" || "*.jsx",
     compile in Compile := (compile in Compile).dependsOn(webpack.toTask("")).value,
     mappings in (Compile, packageBin) := {
@@ -175,23 +112,14 @@ lazy val frontEnd = project("front-end")
     // Remove to use Scala IDE
     EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)
   )
-  .settings(BuildTarget.additionalSettings)
 
 lazy val loadTestApi = project("load-test-api")
   .settings(
-    version := buildVersion,
     libraryDependencies += lagomJavadslApi
   )
 
 lazy val loadTestImpl = project("load-test-impl")
-  .enablePlugins(LagomJava)
-  .settings(
-    version := buildVersion,
-    version in Docker := buildVersion,
-    resolvers += bintrayRepo("hajile", "maven"),
-    resolvers += bintrayRepo("hseeberger", "maven")
-   )
-  .settings(BuildTarget.additionalSettings)
+  .enablePlugins(LagomJava, SbtReactiveAppPlugin)
   .dependsOn(loadTestApi, friendApi, activityStreamApi, chirpApi)
 
 def project(id: String) = Project(id, base = file(id))
