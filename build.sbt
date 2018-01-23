@@ -8,7 +8,7 @@ import com.typesafe.sbt.packager.docker._
 organization in ThisBuild := "com.lightbend.lagom.sample.chirper"
 
 // the Scala version that will be used for cross-compiled libraries
-scalaVersion in ThisBuild := "2.11.12"
+scalaVersion in ThisBuild := "2.12.4"
 
 // SCALA SUPPORT: Remove the line below
 EclipseKeys.projectFlavor in Global := EclipseProjectFlavor.Java
@@ -136,8 +136,8 @@ lazy val frontEnd = project("front-end")
     resolvers += bintrayRepo("hajile", "maven"),
     resolvers += bintrayRepo("hseeberger", "maven"),
     libraryDependencies ++= Seq(
-      "org.webjars" % "foundation" % "5.5.2",
-      "org.webjars" %% "webjars-play" % "2.5.0",
+      "org.webjars" % "foundation" % "6.4.2",
+      "org.webjars" %% "webjars-play" % "2.6.3",
       lagomJavadslClient
     ),
 

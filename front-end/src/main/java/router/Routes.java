@@ -15,6 +15,9 @@ import scala.collection.Seq;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.webjars.play.RequireJS;
+import org.webjars.play.WebJarAssets;
+
 /**
  * We use the Java DSL router instead of the Play routes file, so that this project can also be built by Maven, which
  * as yet does not have a plugin for compiling Play routers.
@@ -25,23 +28,31 @@ public class Routes implements Router {
     private final Application application;
     private final Assets assets;
     private final WebJarAssets webJars;
+    private final RequireJS requireJs;
     private final Materializer materializer;
 
+    private final RoutingDsl routingDsl;
     private final Router router;
 
     @Inject
     public Routes(Application application,
-            Assets assets, WebJarAssets webJars, Materializer materializer) {
+                  Assets assets,
+                  WebJarAssets webJars,
+                  RequireJS requireJs,
+                  Materializer materializer,
+                  RoutingDsl routingDsl) {
         this.application = application;
         this.assets = assets;
         this.webJars = webJars;
+        this.requireJs = requireJs;
         this.materializer = materializer;
 
+        this.routingDsl = routingDsl;
         this.router = buildRouter();
     }
 
     private Router buildRouter() {
-        return new RoutingDsl()
+        return this.routingDsl
                 // Index
                 .GET("/").routeTo(application::index)
                 .GET("/signup").routeTo(application::index)
@@ -50,13 +61,24 @@ public class Routes implements Router {
                 .GET("/cb").routeTo(application::circuitBreaker)
 
                 // Assets
+                .GET("/webjars/_requirejs").routeAsync(() ->
+                        requireJs.setup()
+                                .asJava()
+                                .apply(requestHeader())
+                                .run(materializer)
+                )
                 .GET("/assets/*file").routeAsync((String file) ->
-                        assets.at("/public", file, false).asJava()
-                                .apply(requestHeader()).run(materializer))
+                        assets.at("/public", file, false)
+                                .asJava()
+                                .apply(requestHeader())
+                                .run(materializer)
+                )
                 .GET("/webjars/*file").routeAsync((String file) ->
-                        webJars.at(file).asJava()
-                                .apply(requestHeader()).run(materializer))
-
+                        webJars.at(file)
+                                .asJava()
+                                .apply(requestHeader())
+                                .run(materializer)
+                )
                 .build().asScala();
     }
 

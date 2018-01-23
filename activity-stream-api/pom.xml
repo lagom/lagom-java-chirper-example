@@ -21,11 +21,11 @@
         </dependency>
         <dependency>
             <groupId>com.lightbend.lagom</groupId>
-            <artifactId>lagom-javadsl-api_2.11</artifactId>
+            <artifactId>lagom-javadsl-api_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.lightbend.lagom</groupId>
-            <artifactId>lagom-javadsl-jackson_2.11</artifactId>
+            <artifactId>lagom-javadsl-jackson_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
 </project>

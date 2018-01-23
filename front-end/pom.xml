@@ -16,11 +16,11 @@
     <dependencies>
         <dependency>
             <groupId>com.lightbend.lagom</groupId>
-            <artifactId>lagom-javadsl-client_2.11</artifactId>
+            <artifactId>lagom-javadsl-client_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
-            <artifactId>webjars-play_2.11</artifactId>
+            <artifactId>webjars-play_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
@@ -40,11 +40,11 @@
         </dependency>
         <dependency>
             <groupId>com.lightbend.lagom</groupId>
-            <artifactId>lagom-logback_2.11</artifactId>
+            <artifactId>lagom-logback_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>com.typesafe.play</groupId>
-            <artifactId>play-netty-server_2.11</artifactId>
+            <artifactId>play-netty-server_${scala.binary.version}</artifactId>
         </dependency>
         <!-- Service Locator Provider -->
         <dependency>
@@ -89,7 +89,7 @@
             <plugin>
                 <groupId>com.jakewharton.twirl</groupId>
                 <artifactId>twirl-maven-plugin</artifactId>
-                <version>1.0.5</version>
+                <version>1.1.0</version>
                 <configuration>
                     <!-- This is what the PlayJava sbt plugin adds as imports -->
                     <imports>
@@ -105,7 +105,6 @@
                         <import>play.api.data.Field</import>
                         <import>play.mvc.Http.Context.Implicit._</import>
                         <!-- Default Java imports -->
-                        <import>play.data._</import>
                         <import>play.core.j.PlayMagicForJava._</import>
                     </imports>
                 </configuration>
