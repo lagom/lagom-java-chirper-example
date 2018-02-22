@@ -8,7 +8,9 @@ import akka.stream.testkit.TestSubscriber.Probe;
 import akka.stream.testkit.javadsl.TestSink;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.pcollections.TreePVector;
 import sample.chirper.chirp.api.Chirp;
 import sample.chirper.chirp.api.ChirpService;
@@ -17,17 +19,28 @@ import sample.chirper.chirp.api.LiveChirpsRequest;
 import scala.concurrent.duration.FiniteDuration;
 
 import java.time.Instant;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ChirpServiceTest {
 
     private static TestServer server;
 
     @BeforeClass
-    public static void setUp() {
+    public static void setUp() throws InterruptedException, ExecutionException, TimeoutException {
         server = startServer(defaultSetup().withCassandra(true));
+
+        // Let's not rush into things...
+        // this is a canary wait to ensure the server is up and running so tests can start. If
+        // this fails it's not a test failure, it's that the machine running this is slow.
+        ChirpService chirpService = server.client(ChirpService.class);
+        LiveChirpsRequest request = new LiveChirpsRequest(TreePVector.<String>empty().plus("usr1").plus("usr2"));
+        chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(10, SECONDS);
+
     }
 
     @AfterClass
@@ -37,13 +50,13 @@ public class ChirpServiceTest {
     }
 
     @Test
-    public void shouldPublishShirpsToSubscribers() throws Exception {
+    public void shouldPublishChirpsToSubscribers() throws Exception {
         ChirpService chirpService = server.client(ChirpService.class);
         LiveChirpsRequest request = new LiveChirpsRequest(TreePVector.<String>empty().plus("usr1").plus("usr2"));
-        Source<Chirp, ?> chirps1 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+        Source<Chirp, ?> chirps1 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(1, SECONDS);
         Probe<Chirp> probe1 = chirps1.runWith(TestSink.probe(server.system()), server.materializer());
         probe1.request(10);
-        Source<Chirp, ?> chirps2 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+        Source<Chirp, ?> chirps2 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(1, SECONDS);
         Probe<Chirp> probe2 = chirps2.runWith(TestSink.probe(server.system()), server.materializer());
         probe2.request(10);
 
@@ -103,7 +116,7 @@ public class ChirpServiceTest {
         chirpService.addChirp("usr6").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
 
         HistoricalChirpsRequest request = new HistoricalChirpsRequest(Instant.now().minusSeconds(20),
-                TreePVector.<String>empty().plus("usr5").plus("usr6"));
+            TreePVector.<String>empty().plus("usr5").plus("usr6"));
 
         eventually(FiniteDuration.create(10, SECONDS), () -> {
             Source<Chirp, ?> chirps = chirpService.getHistoricalChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
@@ -113,6 +126,4 @@ public class ChirpServiceTest {
             probe.expectComplete();
         });
     }
-
-
 }
