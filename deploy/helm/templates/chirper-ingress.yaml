@@ -1,0 +1,39 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: chirper-ingress
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"  
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /api/activity
+        backend:
+          serviceName: activityservice
+          servicePort: 9000
+      - path: /api/users
+        backend:
+          serviceName: friendservice
+          servicePort: 9000
+      - path: /api/chirps
+        backend:
+          serviceName: chirpservice
+          servicePort: 9000
+      - backend:
+          serviceName: web
+          servicePort: 9000
+{{- if .Values.chirper.ingress.host }}
+    host: "{{ .Values.chirper.ingress.host }}"
+{{- if .Values.chirper.ingress.tls.secret }}
+  tls:
+  - hosts:
+    - "{{ .Values.chirper.ingress.host }}"
+    secretName: "{{ .Values.chirper.ingress.tls.secret }}"
+{{- end }}
+{{- end }}

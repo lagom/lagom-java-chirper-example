@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: friendservice
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"    
+  name: friendservice
+spec:
+  clusterIP: None
+  ports:
+  - name: http-lagom-api
+    port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: friendservice

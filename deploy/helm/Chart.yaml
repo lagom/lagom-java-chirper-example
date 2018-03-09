@@ -1,0 +1,12 @@
+name: chirper
+version: 0.0.1
+description: Chirper is a example lagom app
+icon: ~
+keywords:
+- chirper 
+- lagom
+home: ~
+maintainers:
+- name: Nobody
+  email: nobody@gmail.com
+engine: gotpl
