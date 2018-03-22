@@ -156,7 +156,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <lagom.version>1.4.1</lagom.version>
+        <lagom.version>1.4.2</lagom.version>
         <scala.binary.version>2.12</scala.binary.version>
         <!--
         <conductr.lib.name>lagom1-java-conductr-bundle-lib_${scala.binary.version}</conductr.lib.name>
