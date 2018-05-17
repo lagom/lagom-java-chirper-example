@@ -1,6 +1,6 @@
 # lagom-java-chirper-example
 
-A Lagom Java example showcasing a Twitter-like application
+This repository has been archived in favour of the specialised:
 
-Start all services using `mvn lagom:runAll` or `sbt runAll`.
-
+ - [lagom-java-sbt-chirper-example](https://github.com/lagom/lagom-java-sbt-chirper-example/) which is a fork of this but only uses `sbt`.
+ - [lagom-java-maven-chirper-example](https://github.com/lagom/lagom-java-maven-chirper-example/) which is a fork of this but only uses `Maven`.
